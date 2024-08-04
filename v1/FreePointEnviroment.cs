@@ -14,18 +14,19 @@ public class FreePointEnviroment : Component
         public BodiesInWorld bodiesInWorld = new();
         public Library library = new();
 
-        public struct Path {
+        public class Path {
             public string name;
-            public int? jointIndex;
-            public int? meshVertexIndex;
+            public int? jointIndex = default;
+            public int? meshVertexIndex = default;
+            public Path() {}
 
-            public string convertToString(){
+            public string pathToString(){
                 string temp = $"{name}";
                 if (jointIndex != null) temp += $"_{jointIndex}";
                 if (meshVertexIndex != null) temp += $"_{meshVertexIndex}";
                 return temp;
             }
-
+        
             public Path(string name,int? jointIndex,int? meshVertexIndex){
                 this.name = name;
                 this.jointIndex = jointIndex;
@@ -34,17 +35,15 @@ public class FreePointEnviroment : Component
         }
 
         public class BodiesInWorld {
-            public Dictionary<Path,BodyData> allBodies;
+            public Dictionary<string,BodyData> allBodies;
             public struct Axis {
                 public vec3 origin,x,y,z;
             }
             public struct BodyData {
-                public string name; 
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
             }
             public struct Joint {
-                public int index;
                 public List<int> jointConnections;
                 public Axis localAxis;
                 public Mesh mesh;
@@ -71,7 +70,10 @@ public class FreePointEnviroment : Component
                 return cube;
             }
             public Path createPath(string name,int? jointIndex,int? meshVertexIndex){
-                return new Path(name,jointIndex,meshVertexIndex);
+                Path temp;
+                bool error = jointIndex == null && meshVertexIndex != null;
+                temp = (!error)? new Path(name,jointIndex,meshVertexIndex):null;
+                return temp;
             }
             public quat angledAxis(float angle, vec3 rotationAxis){
                 return new quat(rotationAxis, angle);
@@ -81,14 +83,14 @@ public class FreePointEnviroment : Component
                 vec3 v = point - origin;
                 vec3 rotatedOffset = q * v;
                 return origin + rotatedOffset;
-            }
+            } 
         }
     }
 
 	void Init()
 	{
-        string lol = world.library.createPath("lol",1,null).convertToString();
-        Log.Message(lol);
+        World.Path lol = world.library.createPath("lol",null,1);
+        Log.Message(lol == null);
 	}
 	
 	void Update()
