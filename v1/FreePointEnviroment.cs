@@ -7,11 +7,10 @@ using Unigine;
 [Component(PropertyGuid = "11c8627ecaa24277eefccff039dede7767f5b9cc")]
 public class FreePointEnviroment : Component
 {
-	public Node clone;
     public World world = new World();
 
     public class World {
-        public BodiesInWorld bodiesInWorld = new();
+        public Dictionary<string,BodyInWorld> allBodies;
         public Library library = new();
 
         public class Path {
@@ -22,11 +21,16 @@ public class FreePointEnviroment : Component
 
             public string pathToString(){
                 string temp = $"{name}";
-                if (jointIndex != null) temp += $"_{jointIndex}";
-                if (meshVertexIndex != null) temp += $"_{meshVertexIndex}";
+                bool jointCheck = jointIndex != null;
+                bool meshCheck = meshVertexIndex != null;
+                if (jointCheck) {
+                    temp += $"_{jointIndex}";
+                    if (meshCheck) 
+                        temp += $"_{meshVertexIndex}";
+                    };
                 return temp;
             }
-        
+
             public Path(string name,int? jointIndex,int? meshVertexIndex){
                 this.name = name;
                 this.jointIndex = jointIndex;
@@ -34,8 +38,7 @@ public class FreePointEnviroment : Component
             }
         }
 
-        public class BodiesInWorld {
-            public Dictionary<string,BodyData> allBodies;
+        public struct BodyInWorld {
             public struct Axis {
                 public vec3 origin,x,y,z;
             }
@@ -56,8 +59,12 @@ public class FreePointEnviroment : Component
                 public List<Triangle> indices;
             }
         }
-        
-        public class Library{
+
+        public class Library {
+            public void codeTest(){
+                Path lol = createPath("lol",null,1);
+                Log.Message(lol == null);
+            }
             public ObjectMeshDynamic createCube(vec3 size,vec3 position,string name){
                 ObjectMeshDynamic cube = Primitives.CreateBox(size);
                 cube.TriggerInteractionEnabled = true;
@@ -89,10 +96,10 @@ public class FreePointEnviroment : Component
 
 	void Init()
 	{
-        World.Path lol = world.library.createPath("lol",null,1);
-        Log.Message(lol == null);
+        world.library.codeTest();
+
 	}
-	
+
 	void Update()
 	{
 		// write here code to be called before updating each render frame
