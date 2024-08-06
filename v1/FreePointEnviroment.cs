@@ -19,7 +19,7 @@ public class FreePointEnviroment : Component
             public int? meshVertexIndex = default;
             public Path() {}
 
-            public string pathToString(){
+            public string pathToString() {
                 string temp = $"{name}";
                 bool jointCheck = jointIndex != null;
                 bool meshCheck = meshVertexIndex != null;
@@ -38,29 +38,63 @@ public class FreePointEnviroment : Component
             }
         }
 
-        public struct BodyInWorld {
+        public class BodyInWorld {
+            public Axis axis;
             public struct Axis {
                 public vec3 origin,x,y,z;
             }
+            public BodyData bodyData;
             public struct BodyData {
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
             }
+            public Joint joint;
             public struct Joint {
                 public List<int> jointConnections;
                 public Axis localAxis;
-                public Mesh mesh;
+                public BodyMesh mesh;
             }
+            public Triangle triangle;
             public struct Triangle{
                 public int a,b,c;
             }
-            public struct Mesh {
+            public BodyMesh bodyMesh;
+            public struct BodyMesh {
                 public List<vec3> vertex;
                 public List<Triangle> indices;
             }
         }
 
         public class Library {
+            public BodyInWorld bodyInWorld = new();
+
+            public Path createPath(string name,int? jointIndex,int? meshVertexIndex){
+                Path temp;
+                bool error = jointIndex == null && meshVertexIndex != null;
+                temp = (!error)? new Path(name,jointIndex,meshVertexIndex):null;
+                return temp;
+            }
+
+            public class BodyClass: BodyInWorld {
+                public Quaternion quaternion = new();
+
+
+
+                public class Quaternion {
+                    public quat angledAxis(float angle, vec3 rotationAxis){
+                        return new quat(rotationAxis, angle);
+                    }
+                    public vec3 rotate(vec3 origin, vec3 point, quat angledAxis){
+                        quat q = angledAxis;
+                        vec3 v = point - origin;
+                        vec3 rotatedOffset = q * v;
+                        return origin + rotatedOffset;
+                    }                    
+                }
+
+            }
+
+
             public void codeTest(){
                 Path lol = createPath("lol",null,1);
                 Log.Message(lol == null);
@@ -76,21 +110,6 @@ public class FreePointEnviroment : Component
                 cube.Name = name;
                 return cube;
             }
-            public Path createPath(string name,int? jointIndex,int? meshVertexIndex){
-                Path temp;
-                bool error = jointIndex == null && meshVertexIndex != null;
-                temp = (!error)? new Path(name,jointIndex,meshVertexIndex):null;
-                return temp;
-            }
-            public quat angledAxis(float angle, vec3 rotationAxis){
-                return new quat(rotationAxis, angle);
-            }
-            public vec3 rotate(vec3 origin, vec3 point, quat angledAxis){
-                quat q = angledAxis;
-                vec3 v = point - origin;
-                vec3 rotatedOffset = q * v;
-                return origin + rotatedOffset;
-            } 
         }
     }
 
