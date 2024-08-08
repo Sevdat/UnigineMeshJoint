@@ -55,9 +55,9 @@ public class FreePointEnviroment : Component
                     this.y = y;
                     this.z = z;
                 }
-            }
-            public void newAxis(vec3 origin,vec3 x,vec3 y,vec3 z){
-                axis = new Axis(origin,x,y,z);
+                public Axis newAxis(vec3 origin,vec3 x,vec3 y,vec3 z){
+                    return new Axis(origin,x,y,z);
+                }
             }
 
             public BodyData bodyData;
@@ -68,10 +68,11 @@ public class FreePointEnviroment : Component
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                 }
+                public BodyData newBodyData(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
+                    return new BodyData(globalAxis,bodyStructure);
+                }
             }
-            public void newBodyData(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
-                bodyData = new BodyData(globalAxis,bodyStructure);
-            }
+
 
             public Joint joint;
             public struct Joint {
@@ -83,9 +84,9 @@ public class FreePointEnviroment : Component
                     this.localAxis = localAxis;
                     this.mesh = mesh;
                 }
-            }
-            public void newJoint(List<int> jointConnections,Axis localAxis,BodyMesh mesh){
-                joint = new Joint(jointConnections,localAxis,mesh);
+                public Joint newJoint(List<int> jointConnections,Axis localAxis,BodyMesh mesh){
+                    return new Joint(jointConnections,localAxis,mesh);
+                }
             }
 
             public Triangle triangle;
@@ -96,9 +97,9 @@ public class FreePointEnviroment : Component
                     this.b = b;
                     this.c = c;
                 }
-            }
-            public void newTriangle(int a,int b,int c){
-                triangle = new Triangle(a,b,c);
+                public Triangle newTriangle(int a,int b,int c){
+                    return new Triangle(a,b,c);
+                }
             }
 
             public BodyMesh bodyMesh;
@@ -109,19 +110,21 @@ public class FreePointEnviroment : Component
                     this.vertex = vertex;
                     this.indices = indices;
                 }
-            }
-            public void newBodyMesh(List<vec3> vertex,List<Triangle> indices){
-                bodyMesh = new BodyMesh(vertex,indices);
+                public BodyMesh newBodyMesh(List<vec3> vertex,List<Triangle> indices){
+                    return new BodyMesh(vertex,indices);
+                }
             }
         }
 
         public class Library {
             public BodyInWorld bodyInWorld = new();
-
+            public void lol(){
+                bodyInWorld.axis.newAxis(0,0,0,0);
+            }
             public class BodyClass: BodyInWorld {
                 public Quaternion quaternion = new();
 
-
+                
 
                 public class Quaternion {
                     public quat angledAxis(float angle, vec3 rotationAxis){
