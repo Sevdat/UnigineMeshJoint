@@ -10,10 +10,11 @@ public class FreePointEnviroment : Component
     public World world = new World();
 
     public class World {
-        public Dictionary<string,BodyInWorld.BodyData> allBodies;
-        public Library library = new();
-        public BodyInWorld bodyInWorld = new();
-
+        public Dictionary<string,BodyInWorld> allBodies;
+        public Library library;
+        public BodyInWorld bodyInWorld;
+        public Path path;
+        
         public class Path {
             public Path() {}
             public string name;
@@ -43,7 +44,20 @@ public class FreePointEnviroment : Component
             }
         }
 
-        public class BodyInWorld {
+        public struct BodyInWorld {
+
+            public Quaternion quaternion;
+            public struct Quaternion {
+                public quat angledAxis(float angle, vec3 rotationAxis){
+                    return new quat(rotationAxis, angle);
+                }
+                public vec3 rotate(vec3 origin, vec3 point, quat angledAxis){
+                    quat q = angledAxis;
+                    vec3 v = point - origin;
+                    vec3 rotatedOffset = q * v;
+                    return origin + rotatedOffset;
+                }                    
+            }
 
             public Axis axis;
             public struct Axis {
@@ -57,10 +71,17 @@ public class FreePointEnviroment : Component
                 public Axis get(){
                     return new Axis(origin,x,y,z);
                 }
+                public Axis set(vec3 origin,vec3 x,vec3 y,vec3 z){
+                    this.origin = origin;
+                    this.x = x;
+                    this.y = y;
+                    this.z = z;
+                    return get();
+                }
                 public Axis create(vec3 origin,float distanceFromOrigin){
                     this.origin=origin;
                     scale(distanceFromOrigin);
-                    return new Axis(origin,x,y,z);
+                    return get();
                 }
                 public void scale(float distanceFromOrigin){
                     bool gateX = x == vec3.ZERO;
@@ -90,7 +111,7 @@ public class FreePointEnviroment : Component
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                 }
-                public BodyData create(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
+                public BodyData get(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
                     return new BodyData(globalAxis,bodyStructure);
                 }
             }
@@ -99,14 +120,27 @@ public class FreePointEnviroment : Component
             public struct Joint {
                 public List<int> jointConnections;
                 public Axis localAxis;
-                public BodyMesh mesh;
-                public Joint(List<int> jointConnections,Axis localAxis,BodyMesh mesh){
+                public List<CollisionSphere> collisionSphere;
+                public Joint(List<int> jointConnections,Axis localAxis,List<CollisionSphere> collisionSphere){
                     this.jointConnections = jointConnections;
                     this.localAxis = localAxis;
-                    this.mesh = mesh;
+                    this.collisionSphere = collisionSphere;
                 }
-                public Joint create(List<int> jointConnections,Axis localAxis,BodyMesh mesh){
-                    return new Joint(jointConnections,localAxis,mesh);
+                public Joint get(List<int> jointConnections,Axis localAxis,List<CollisionSphere> collisionSphere){
+                    return new Joint(jointConnections,localAxis,collisionSphere);
+                }
+            }
+
+            public CollisionSphere collisionSphere;
+            public struct CollisionSphere {
+                public vec3 origin;
+                public float radius;
+                public CollisionSphere(vec3 origin,float radius){
+                    this.origin = origin;
+                    this.radius = radius;
+                }
+                public CollisionSphere get(vec3 origin,float radius){
+                    return new CollisionSphere(origin,radius);
                 }
             }
 
@@ -118,7 +152,7 @@ public class FreePointEnviroment : Component
                     this.b = b;
                     this.c = c;
                 }
-                public Triangle create(int a,int b,int c){
+                public Triangle get(int a,int b,int c){
                     return new Triangle(a,b,c);
                 }
             }
@@ -131,34 +165,13 @@ public class FreePointEnviroment : Component
                     this.vertex = vertex;
                     this.indices = indices;
                 }
-                public BodyMesh create(List<vec3> vertex,List<Triangle> indices){
+                public BodyMesh get(List<vec3> vertex,List<Triangle> indices){
                     return new BodyMesh(vertex,indices);
                 }
             }
         }
 
         public class Library {
-            
-            public void lol(){
-            }
-            public class BodyClass: BodyInWorld {
-                public Quaternion quaternion = new();
-
-                
-
-                public class Quaternion {
-                    public quat angledAxis(float angle, vec3 rotationAxis){
-                        return new quat(rotationAxis, angle);
-                    }
-                    public vec3 rotate(vec3 origin, vec3 point, quat angledAxis){
-                        quat q = angledAxis;
-                        vec3 v = point - origin;
-                        vec3 rotatedOffset = q * v;
-                        return origin + rotatedOffset;
-                    }                    
-                }
-
-            }
 
 
             public void codeTest(){
@@ -177,25 +190,17 @@ public class FreePointEnviroment : Component
             }
         }
     }
-
+    ObjectMeshDynamic v;
 	void Init()
 	{
-        var v = world.bodyInWorld.axis.create(new vec3(5,5,5),2);
-        Log.Message(v.origin +"\n");
-        Log.Message(v.x+"\n");
-        Log.Message(v.y+"\n");
-        Log.Message(v.z+"\n");
-        v.create(new vec3(5,5,5),5);
-        Log.Message(v.origin +"\n");
-        Log.Message(v.x+"\n");
-        Log.Message(v.y+"\n");
-        Log.Message(v.z+"\n");
+        v = world.library.createCube(new vec3(1,1,1),new vec3(1,1,1),"lol");
         
 	}
-
+    float lol =0;
 	void Update()
 	{
+        lol += Game.IFps;
+        if (lol>5) v.DeleteForce();
 		// write here code to be called before updating each render frame
-		
 	}
 }
