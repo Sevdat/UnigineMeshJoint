@@ -74,12 +74,7 @@ public class FreePointEnviroment : Component
                     this.z = z;
                     return get();
                 }
-                public Axis create(vec3 origin,float distanceFromOrigin){
-                    this.origin=origin;
-                    scale(distanceFromOrigin);
-                    return get();
-                }
-                public void scale(float distanceFromOrigin){
+                public Axis scale(float distanceFromOrigin){
                     bool gateX = x == vec3.ZERO;
                     bool gateY = y == vec3.ZERO;
                     bool gateZ = z == vec3.ZERO;
@@ -92,6 +87,7 @@ public class FreePointEnviroment : Component
                     z = gateZ?
                         origin + new vec3(0,0,distanceFromOrigin):
                         origin + direction(z,origin)*distanceFromOrigin;
+                    return get();
                 }
                 public vec3 direction(vec3 point,vec3 origin){ 
                     vec3 v = point-origin;
