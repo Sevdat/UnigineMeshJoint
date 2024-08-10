@@ -60,6 +60,7 @@ public class FreePointEnviroment : Component
             }
 
             public class Axis {
+                public Axis() {}
                 public vec3 origin,x,y,z ;
                 public Axis(vec3 origin,vec3 x,vec3 y,vec3 z){
                     this.origin = origin;
@@ -102,6 +103,7 @@ public class FreePointEnviroment : Component
                 }
             }
             public class BodyData {
+                public BodyData() {}
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
                 public BodyData(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
@@ -119,6 +121,7 @@ public class FreePointEnviroment : Component
             }
 
             public class Joint {
+                public Joint() {}
                 public List<int> jointConnections;
                 public Axis localAxis;
                 public Dictionary<int,CollisionSphere> collisionSphere;
@@ -139,6 +142,7 @@ public class FreePointEnviroment : Component
             }
 
             public class CollisionSphere {
+                public CollisionSphere() {}
                 public vec3 origin;
                 public float radius;
                 public CollisionSphere(vec3 origin,float radius){
@@ -168,6 +172,7 @@ public class FreePointEnviroment : Component
             }
 
             public class Triangle {
+                public Triangle() {}
                 public int a,b,c;
                 public Triangle(int a,int b,int c){
                     this.a = a;
@@ -186,6 +191,7 @@ public class FreePointEnviroment : Component
             }
 
             public class BodyMesh {
+                public BodyMesh() {}
                 public List<vec3> vertex;
                 public List<Triangle> indices;
                 public BodyMesh(List<vec3> vertex,List<Triangle> indices){
@@ -202,7 +208,8 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct Timer{
+            public class Timer{
+                public Timer() {}
                 public float time;
                 public Timer(float time){
                     this.time = time;
