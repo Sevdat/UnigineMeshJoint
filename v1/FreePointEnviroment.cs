@@ -59,7 +59,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct Axis {
+            public class Axis {
                 public vec3 origin,x,y,z ;
                 public Axis(vec3 origin,vec3 x,vec3 y,vec3 z){
                     this.origin = origin;
@@ -68,7 +68,7 @@ public class FreePointEnviroment : Component
                     this.z = z;
                 }
                 public Axis get(){
-                    return new Axis(origin,x,y,z);
+                    return this;
                 }
                 public Axis set(vec3 origin,vec3 x,vec3 y,vec3 z){
                     this.origin = origin;
@@ -101,7 +101,7 @@ public class FreePointEnviroment : Component
                     return v/ MathLib.Length(v);
                 }
             }
-            public struct BodyData {
+            public class BodyData {
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
                 public BodyData(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
@@ -109,7 +109,7 @@ public class FreePointEnviroment : Component
                     this.bodyStructure = bodyStructure;
                 }
                 public BodyData get(){
-                    return new BodyData(globalAxis,bodyStructure);
+                    return this;
                 }
                 public BodyData set(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
                     this.globalAxis = globalAxis;
@@ -118,7 +118,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct Joint {
+            public class Joint {
                 public List<int> jointConnections;
                 public Axis localAxis;
                 public Dictionary<int,CollisionSphere> collisionSphere;
@@ -128,7 +128,7 @@ public class FreePointEnviroment : Component
                     this.collisionSphere = collisionSphere;
                 }
                 public Joint get(){
-                    return new Joint(jointConnections,localAxis,collisionSphere);
+                    return this;
                 }
                 public Joint set(List<int> jointConnections,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
                     this.jointConnections = jointConnections;
@@ -138,7 +138,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct CollisionSphere {
+            public class CollisionSphere {
                 public vec3 origin;
                 public float radius;
                 public CollisionSphere(vec3 origin,float radius){
@@ -146,7 +146,7 @@ public class FreePointEnviroment : Component
                     this.radius = radius;
                 }
                 public CollisionSphere get(){
-                    return new CollisionSphere(origin,radius);
+                    return this;
                 }
                 public CollisionSphere set(vec3 origin,float radius){
                     this.origin = origin;
@@ -155,7 +155,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct Quaternion {
+            public class Quaternion {
                 public quat angledAxis(float angle, vec3 rotationAxis){
                     return new quat(rotationAxis, angle);
                 }
@@ -167,7 +167,7 @@ public class FreePointEnviroment : Component
                 }                    
             }
 
-            public struct Triangle {
+            public class Triangle {
                 public int a,b,c;
                 public Triangle(int a,int b,int c){
                     this.a = a;
@@ -175,7 +175,7 @@ public class FreePointEnviroment : Component
                     this.c = c;
                 }
                 public Triangle get(){
-                    return new Triangle(a,b,c);
+                    return this;
                 }
                 public Triangle set(int a,int b,int c){
                     this.a = a;
@@ -185,7 +185,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            public struct BodyMesh {
+            public class BodyMesh {
                 public List<vec3> vertex;
                 public List<Triangle> indices;
                 public BodyMesh(List<vec3> vertex,List<Triangle> indices){
@@ -193,7 +193,7 @@ public class FreePointEnviroment : Component
                     this.indices = indices;
                 }
                 public BodyMesh get(){
-                    return new BodyMesh(vertex,indices);
+                    return this;
                 }
                 public BodyMesh get(List<vec3> vertex,List<Triangle> indices){
                     this.vertex = vertex;
@@ -208,7 +208,7 @@ public class FreePointEnviroment : Component
                     this.time = time;
                 }
                 public Timer get(){
-                    return new Timer(time);
+                    return this;
                 }
                 public Timer set(float time){
                     this.time = time;
