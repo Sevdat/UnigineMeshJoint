@@ -97,6 +97,7 @@ public class FreePointEnviroment : Component
             public class BodyData {
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
+                public int amountOfKeysLeft;
                 public List<int> freeKeys;
                 public BodyData init(){
                     return new BodyData();
@@ -109,6 +110,14 @@ public class FreePointEnviroment : Component
                     this.bodyStructure = bodyStructure;
                     return get();
                 }
+                public void generateKeys(int amount){
+                    if(amountOfKeysLeft == 0){
+                        int size = bodyStructure.Count;
+                        for(int i = 0; i < amount; i++){
+                            freeKeys.Add(i+size);
+                        }
+                    }
+                } 
             }
 
             public class Joint {
