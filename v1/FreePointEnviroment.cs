@@ -67,7 +67,23 @@ public class FreePointEnviroment : Component
                 public Axis get(){
                     return this;
                 }
-                public Axis set(vec3 origin,vec3 x,vec3 y,vec3 z){
+                public Axis setOrigin(vec3 origin){
+                    this.origin = origin;
+                    return get();
+                }
+                public Axis setX(vec3 x){
+                    this.x = x;
+                    return get();
+                }
+                public Axis setY(vec3 y){
+                    this.y = y;
+                    return get();
+                }
+                public Axis setZ(vec3 z){
+                    this.z = z;
+                    return get();
+                }
+                public Axis setAll(vec3 origin,vec3 x,vec3 y,vec3 z){
                     this.origin = origin;
                     this.x = x;
                     this.y = y;
@@ -75,18 +91,20 @@ public class FreePointEnviroment : Component
                     return get();
                 }
                 public Axis scale(float distanceFromOrigin){
-                    bool gateX = x == vec3.ZERO;
-                    bool gateY = y == vec3.ZERO;
-                    bool gateZ = z == vec3.ZERO;
-                    x = gateX?
-                        origin + new vec3(distanceFromOrigin,0,0):
-                        origin + direction(x,origin)*distanceFromOrigin;
-                    y = gateY?
-                        origin + new vec3(0,distanceFromOrigin,0):
-                        origin + direction(y,origin)*distanceFromOrigin;
-                    z = gateZ?
-                        origin + new vec3(0,0,distanceFromOrigin):
-                        origin + direction(z,origin)*distanceFromOrigin;
+                    if (distanceFromOrigin != 0){
+                        bool gateX = x == vec3.ZERO;
+                        bool gateY = y == vec3.ZERO;
+                        bool gateZ = z == vec3.ZERO;
+                        x = gateX?
+                            origin + new vec3(distanceFromOrigin,0,0):
+                            origin + direction(x,origin)*distanceFromOrigin;
+                        y = gateY?
+                            origin + new vec3(0,distanceFromOrigin,0):
+                            origin + direction(y,origin)*distanceFromOrigin;
+                        z = gateZ?
+                            origin + new vec3(0,0,distanceFromOrigin):
+                            origin + direction(z,origin)*distanceFromOrigin;
+                    }
                     return get();
                 }
                 public vec3 direction(vec3 point,vec3 origin){ 
@@ -105,7 +123,7 @@ public class FreePointEnviroment : Component
                 public BodyData get(){
                     return this;
                 }
-                public BodyData set(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
+                public BodyData setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                     return get();
@@ -116,8 +134,9 @@ public class FreePointEnviroment : Component
                         for(int i = 0; i < amount; i++){
                             freeKeys.Add(i+size);
                         }
+                        amountOfKeysLeft = amount;
                     }
-                } 
+                }
             }
 
             public class Joint {
@@ -131,7 +150,7 @@ public class FreePointEnviroment : Component
                 public Joint get(){
                     return this;
                 }
-                public Joint set(int connectedFrom,List<int> connectedTo,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
+                public Joint setAll(int connectedFrom,List<int> connectedTo,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
                     this.connectedFrom = connectedFrom;
                     this.connectedTo = connectedTo;
                     this.localAxis = localAxis;
@@ -149,7 +168,7 @@ public class FreePointEnviroment : Component
                 public CollisionSphere get(){
                     return this;
                 }
-                public CollisionSphere set(vec3 origin,float radius){
+                public CollisionSphere setAll(vec3 origin,float radius){
                     this.origin = origin;
                     this.radius = radius;
                     return get();
@@ -176,7 +195,7 @@ public class FreePointEnviroment : Component
                 public Triangle get(){
                     return this;
                 }
-                public Triangle set(int a,int b,int c){
+                public Triangle setAll(int a,int b,int c){
                     this.a = a;
                     this.b = b;
                     this.c = c;
@@ -193,7 +212,7 @@ public class FreePointEnviroment : Component
                 public BodyMesh get(){
                     return this;
                 }
-                public BodyMesh set(List<vec3> vertex,List<Triangle> indices){
+                public BodyMesh setAll(List<vec3> vertex,List<Triangle> indices){
                     this.vertex = vertex;
                     this.indices = indices;
                     return get();
@@ -201,18 +220,14 @@ public class FreePointEnviroment : Component
             }
 
             public class Timer{
-                public Timer() {}
                 public float time;
-                public Timer(float time){
-                    this.time = time;
-                }
                 public Timer init(){
                     return new Timer();
                 }
                 public Timer get(){
                     return this;
                 }
-                public Timer set(float time){
+                public Timer setAll(float time){
                     this.time = time;
                     return get();
                 }
