@@ -97,6 +97,7 @@ public class FreePointEnviroment : Component
             public class BodyData {
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
+                public List<int> freeKeys;
                 public BodyData init(){
                     return new BodyData();
                 }
@@ -111,7 +112,8 @@ public class FreePointEnviroment : Component
             }
 
             public class Joint {
-                public List<int> jointConnections;
+                public int connectedFrom;
+                public List<int> connectedTo;
                 public Axis localAxis;
                 public Dictionary<int,CollisionSphere> collisionSphere;
                 public Joint init(){
@@ -121,7 +123,7 @@ public class FreePointEnviroment : Component
                     return this;
                 }
                 public Joint set(List<int> jointConnections,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
-                    this.jointConnections = jointConnections;
+                    this.connectedTo = jointConnections;
                     this.localAxis = localAxis;
                     this.collisionSphere = collisionSphere;
                     return get();
