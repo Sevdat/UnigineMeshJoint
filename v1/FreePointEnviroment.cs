@@ -112,9 +112,9 @@ public class FreePointEnviroment : Component
             }
 
             public class Joint {
+                public Axis localAxis;
                 public int connectedFrom;
                 public List<int> connectedTo;
-                public Axis localAxis;
                 public Dictionary<int,CollisionSphere> collisionSphere;
                 public Joint init(){
                     return new Joint();
@@ -122,8 +122,9 @@ public class FreePointEnviroment : Component
                 public Joint get(){
                     return this;
                 }
-                public Joint set(List<int> jointConnections,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
-                    this.connectedTo = jointConnections;
+                public Joint set(int connectedFrom,List<int> connectedTo,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
+                    this.connectedFrom = connectedFrom;
+                    this.connectedTo = connectedTo;
                     this.localAxis = localAxis;
                     this.collisionSphere = collisionSphere;
                     return get();
