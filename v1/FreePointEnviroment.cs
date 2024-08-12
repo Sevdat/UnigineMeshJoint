@@ -131,16 +131,6 @@ public class FreePointEnviroment : Component
                     this.bodyStructure = bodyStructure;
                     return get();
                 }
-                public Joint addToDictionary(){
-                    generateKeys(increaseKeyBy);
-                    int key = freeKeys[0];
-                    Joint joint = new Joint(){
-                        keyInDictionary = key,
-                    };
-                    bodyStructure.Add(key,joint);
-                    freeKeys.RemoveAt(0);
-                    return joint;
-                }
                 public void generateKeys(int amount){
                     if(amountOfKeysLeft == 0){
                         int size = bodyStructure.Count;
@@ -149,6 +139,23 @@ public class FreePointEnviroment : Component
                         }
                         amountOfKeysLeft = amount;
                     }
+                }
+                public Joint addToDictionary(Joint joint){
+                    generateKeys(increaseKeyBy);
+                    int key = freeKeys[0];
+                    joint.keyInDictionary = key;
+                    bodyStructure.Add(key,joint);
+                    freeKeys.RemoveAt(0);
+                    amountOfKeysLeft -= 1;
+                    return joint;
+                }
+                public Dictionary<int,Joint> deleteFromDictionary(int key){
+                    bool remove = bodyStructure.Remove(key);
+                    if(remove){
+                        freeKeys.Add(key);
+                        amountOfKeysLeft +=1;
+                    }
+                    return bodyStructure;
                 }
             }
 
