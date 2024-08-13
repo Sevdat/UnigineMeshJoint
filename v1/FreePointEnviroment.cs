@@ -61,6 +61,7 @@ public class FreePointEnviroment : Component
 
             public class Axis {
                 public vec3 origin,x,y,z;
+                
                 public Axis init(){
                     return new Axis();
                 }
@@ -112,70 +113,86 @@ public class FreePointEnviroment : Component
                     return v/ MathLib.Length(v);
                 }
             }
+            internal class KeyGenerator{
+                public int amountOfKeys;
+                public int keysInList;
+                public int increaseLimit;
+                public List<int> freeKeys;
+
+                public void generateKeys(){
+                    if(keysInList == 0){
+                        for(int i = 0; i < increaseLimit; i++){
+                            freeKeys.Add(i+amountOfKeys);
+                        }
+                        keysInList += increaseLimit;
+                        amountOfKeys += increaseLimit;
+                    }
+                }
+
+            }
             internal class BodyData {
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
-                public int increaseKeyBy = 10;
-                public int amountOfKeysLeft;
-                public List<int> freeKeys;
+                public KeyGenerator keyGenerator;
+
                 public BodyData init(){
                     BodyData newBody = new BodyData();
-                    newBody.generateKeys(increaseKeyBy);
+                    newBody.keyGenerator.increaseLimit = 10;
+                    newBody.keyGenerator.generateKeys();
                     return newBody;
                 }
                 public BodyData get(){
                     return this;
                 }
-                public BodyData setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure){
+                public BodyData setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure,KeyGenerator keyGenerator){
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
+                    this.keyGenerator = keyGenerator;
                     return get();
                 }
-                public void generateKeys(int amount){
-                    if(amountOfKeysLeft == 0){
-                        int size = bodyStructure.Count;
-                        for(int i = 0; i < amount; i++){
-                            freeKeys.Add(i+size);
-                        }
-                        amountOfKeysLeft = amount;
-                    }
+                public Joint getJoint(int key){
+                   return bodyStructure.TryGetValue(key, out Joint joint)? joint : null;
                 }
-                public Joint addToDictionary(Joint joint){
-                    generateKeys(increaseKeyBy);
-                    int key = freeKeys[0];
-                    joint.keyInDictionary = key;
+                public void addToDictionary(Joint joint){
+                    keyGenerator.generateKeys();
+                    int key = keyGenerator.freeKeys[0];
+                    joint.connection.keyInDictionary = key;
                     bodyStructure.Add(key,joint);
-                    freeKeys.RemoveAt(0);
-                    amountOfKeysLeft -= 1;
-                    return joint;
+                    keyGenerator.freeKeys.RemoveAt(0);
+                    keyGenerator.keysInList -= 1;
                 }
-                public Dictionary<int,Joint> deleteFromDictionary(int key){
+                public void deleteFromDictionary(int key){
                     bool remove = bodyStructure.Remove(key);
                     if(remove){
-                        freeKeys.Add(key);
-                        amountOfKeysLeft +=1;
+                        keyGenerator.freeKeys.Add(key);
+                        keyGenerator.keysInList +=1;
                     }
-                    return bodyStructure;
                 }
+            }
+
+            internal class Connection {
+                public int keyInDictionary;
+                public int connectedFrom;
+                public List<int> connectedTo; 
             }
 
             internal class Joint {
                 public Axis localAxis;
-                public int keyInDictionary;
-                public int connectedFrom;
-                public List<int> connectedTo;
+                public Connection connection;
                 public Dictionary<int,CollisionSphere> collisionSphere;
+                public KeyGenerator keyGenerator;
+
                 public Joint init(){
                     return new Joint();
                 }
                 public Joint get(){
                     return this;
                 }
-                public Joint setAll(int connectedFrom,List<int> connectedTo,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere){
-                    this.connectedFrom = connectedFrom;
-                    this.connectedTo = connectedTo;
+                public Joint setAll(Connection connection,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere,KeyGenerator keyGenerator){
+                    this.connection = connection;
                     this.localAxis = localAxis;
                     this.collisionSphere = collisionSphere;
+                    this.keyGenerator = keyGenerator;
                     return get();
                 }
             }
@@ -183,6 +200,7 @@ public class FreePointEnviroment : Component
             internal class CollisionSphere {
                 public vec3 origin;
                 public float radius;
+
                 public CollisionSphere init(){
                     return new CollisionSphere();
                 }
@@ -210,6 +228,7 @@ public class FreePointEnviroment : Component
 
             internal class Triangle {
                 public int a,b,c;
+
                 public Triangle init(){
                     return new Triangle();
                 }
@@ -227,9 +246,10 @@ public class FreePointEnviroment : Component
             internal class BodyMesh {
                 public List<vec3> vertex;
                 public List<Triangle> indices;
+
                 public BodyMesh init(){
                     return new BodyMesh();
-                }                
+                }
                 public BodyMesh get(){
                     return this;
                 }
