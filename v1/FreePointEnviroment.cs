@@ -119,6 +119,10 @@ public class FreePointEnviroment : Component
                 public int increaseLimit;
                 public List<int> freeKeys;
 
+                public void init(){
+                    increaseLimit = 10;
+                    generateKeys();
+                }
                 public void generateKeys(){
                     if(keysInList == 0){
                         for(int i = 0; i < increaseLimit; i++){
@@ -127,6 +131,35 @@ public class FreePointEnviroment : Component
                         keysInList += increaseLimit;
                         amountOfKeys += increaseLimit;
                     }
+                }
+                public void addKey(int key){
+                    freeKeys.Add(key);
+                    keysInList +=1;
+                }
+                public void removeKey(){
+                    freeKeys.RemoveAt(0);
+                    keysInList -= 1;
+                }
+                public void optiomizeKeys(){
+                    freeKeys.Sort();
+                    int size = freeKeys.Count;
+                    int number = 0;
+                    int add = 0;
+                    int index = 0;
+                    for(int i = 0; i< size; i++){
+                        int key = freeKeys[i];
+                        if (key != number+add) {
+                            number = key;
+                            add = 1;
+                            index = i;
+                            } else add++;
+                    }
+                    size = size-index;
+                    for (int i = 0; i< size; i++){
+                        freeKeys.RemoveAt(index);
+                    }
+                    amountOfKeys = size;
+                    generateKeys();
                 }
 
             }
@@ -137,8 +170,7 @@ public class FreePointEnviroment : Component
 
                 public BodyData init(){
                     BodyData newBody = new BodyData();
-                    newBody.keyGenerator.increaseLimit = 10;
-                    newBody.keyGenerator.generateKeys();
+                    newBody.keyGenerator.init();
                     return newBody;
                 }
                 public BodyData get(){
@@ -158,14 +190,12 @@ public class FreePointEnviroment : Component
                     int key = keyGenerator.freeKeys[0];
                     joint.connection.keyInDictionary = key;
                     bodyStructure.Add(key,joint);
-                    keyGenerator.freeKeys.RemoveAt(0);
-                    keyGenerator.keysInList -= 1;
+                    keyGenerator.removeKey();
                 }
                 public void deleteFromDictionary(int key){
                     bool remove = bodyStructure.Remove(key);
                     if(remove){
-                        keyGenerator.freeKeys.Add(key);
-                        keyGenerator.keysInList +=1;
+                        keyGenerator.addKey(key);
                     }
                 }
             }
