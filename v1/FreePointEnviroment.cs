@@ -7,16 +7,19 @@ using Unigine;
 [Component(PropertyGuid = "11c8627ecaa24277eefccff039dede7767f5b9cc")]
 public class FreePointEnviroment : Component
 {
-    internal World world = new World();
+    public World world = new World();
 
-    internal class World {
+    public class World {
         public Dictionary<string,BodyInWorld> allBodies;
+        public Dictionary<int,List<Collision>> octTree;
         public Library library;
         public BodyInWorld bodyInWorld;
-        public Library.Path path;
-        
 
-        internal class BodyInWorld:Library {
+        public class Collision:Library{
+            public CollisionSphere collisionSphere;
+        }
+
+        public class BodyInWorld:Library {
             public Axis axis;
             public BodyData bodyData;
             public Joint joint;
@@ -24,40 +27,9 @@ public class FreePointEnviroment : Component
             public Quaternion quaternion;
             public Triangle triangle;
             public BodyMesh bodyMesh;
-
-
         }
 
-        internal class Library {
-
-            internal class Path {
-                public Path() {}
-                public string name;
-                public int? jointIndex = default;
-                public int? meshVertexIndex = default;
-                public Path(string name,int? jointIndex,int? meshVertexIndex){
-                    this.name = name;
-                    this.jointIndex = jointIndex;
-                    this.meshVertexIndex = meshVertexIndex;
-                }
-                public string pathToString() {
-                    string temp = $"{name}";
-                    bool jointCheck = jointIndex != null;
-                    bool meshCheck = meshVertexIndex != null;
-                    if (jointCheck) {
-                        temp += $"_{jointIndex}";
-                        if (meshCheck) 
-                            temp += $"_{meshVertexIndex}";
-                        };
-                    return temp;
-                }
-                public Path createPath(string name,int? jointIndex,int? meshVertexIndex){
-                    Path temp;
-                    bool error = jointIndex == null && meshVertexIndex != null;
-                    temp = (!error)? new Path(name,jointIndex,meshVertexIndex):null;
-                    return temp;
-                }
-            }
+        public class Library {
 
             public class Axis {
                 public vec3 origin,x,y,z;
@@ -113,9 +85,9 @@ public class FreePointEnviroment : Component
                     return v/ MathLib.Length(v);
                 }
             }
-            internal class KeyGenerator{
+            public class KeyGenerator{
                 public int amountOfKeys;
-                public int keysInList;
+                public int availableKeys;
                 public int increaseLimit;
                 public List<int> freeKeys;
 
@@ -124,21 +96,21 @@ public class FreePointEnviroment : Component
                     generateKeys();
                 }
                 public void generateKeys(){
-                    if(keysInList == 0){
+                    if(availableKeys == 0){
                         for(int i = 0; i < increaseLimit; i++){
                             freeKeys.Add(i+amountOfKeys);
                         }
-                        keysInList += increaseLimit;
+                        availableKeys += increaseLimit;
                         amountOfKeys += increaseLimit;
                     }
                 }
                 public void addKey(int key){
                     freeKeys.Add(key);
-                    keysInList +=1;
+                    availableKeys +=1;
                 }
                 public void removeKey(){
                     freeKeys.RemoveAt(0);
-                    keysInList -= 1;
+                    availableKeys -= 1;
                 }
                 public void optiomizeKeys(){
                     freeKeys.Sort();
@@ -161,9 +133,9 @@ public class FreePointEnviroment : Component
                     amountOfKeys = size;
                     generateKeys();
                 }
-
             }
-            internal class BodyData {
+            public class BodyData {
+                public string BodyDataName;
                 public Axis globalAxis;
                 public Dictionary<int,Joint> bodyStructure;
                 public KeyGenerator keyGenerator;
@@ -200,13 +172,13 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            internal class Connection {
+            public class Connection {
                 public int keyInDictionary;
                 public int connectedFrom;
                 public List<int> connectedTo; 
             }
 
-            internal class Joint {
+            public class Joint {
                 public Axis localAxis;
                 public Connection connection;
                 public Dictionary<int,CollisionSphere> collisionSphere;
@@ -226,8 +198,15 @@ public class FreePointEnviroment : Component
                     return get();
                 }
             }
+            public class Path {
+                public string CollisionSphereName;
+                public string BodyDataName;
+                public int jointKey;
+                public int collisionSphereKey;
+            }
 
-            internal class CollisionSphere {
+            public class CollisionSphere {
+                public Path path;
                 public vec3 origin;
                 public float radius;
 
@@ -244,7 +223,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            internal class Quaternion {
+            public class Quaternion {
                 public quat angledAxis(float angle, vec3 rotationAxis){
                     return new quat(rotationAxis, angle);
                 }
@@ -256,7 +235,7 @@ public class FreePointEnviroment : Component
                 }                    
             }
 
-            internal class Triangle {
+            public class Triangle {
                 public int a,b,c;
 
                 public Triangle init(){
@@ -273,7 +252,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            internal class BodyMesh {
+            public class BodyMesh {
                 public List<vec3> vertex;
                 public List<Triangle> indices;
 
@@ -290,7 +269,7 @@ public class FreePointEnviroment : Component
                 }
             }
 
-            internal class Timer{
+            public class Timer{
                 public float time;
                 public Timer init(){
                     return new Timer();
@@ -306,6 +285,7 @@ public class FreePointEnviroment : Component
                     this.time += time;
                     return get();
                 }
+
             }
             public ObjectMeshDynamic createCube(vec3 size,vec3 position,string name){
                 ObjectMeshDynamic cube = Primitives.CreateBox(size);
