@@ -37,33 +37,25 @@ public class FreePointEnviroment : Component
                 public Axis init(){
                     return new Axis();
                 }
-                public Axis get(){
-                    return this;
-                }
-                public Axis setOrigin(vec3 origin){
+                public void setOrigin(vec3 origin){
                     this.origin = origin;
-                    return get();
                 }
-                public Axis setX(vec3 x){
+                public void setX(vec3 x){
                     this.x = x;
-                    return get();
                 }
-                public Axis setY(vec3 y){
+                public void setY(vec3 y){
                     this.y = y;
-                    return get();
                 }
-                public Axis setZ(vec3 z){
+                public void setZ(vec3 z){
                     this.z = z;
-                    return get();
                 }
-                public Axis setAll(vec3 origin,vec3 x,vec3 y,vec3 z){
+                public void setAll(vec3 origin,vec3 x,vec3 y,vec3 z){
                     this.origin = origin;
                     this.x = x;
                     this.y = y;
                     this.z = z;
-                    return get();
                 }
-                public Axis scale(float distanceFromOrigin){
+                public void scale(float distanceFromOrigin){
                     if (distanceFromOrigin != 0){
                         bool gateX = x == vec3.ZERO;
                         bool gateY = y == vec3.ZERO;
@@ -78,7 +70,6 @@ public class FreePointEnviroment : Component
                             origin + new vec3(0,0,distanceFromOrigin):
                             origin + direction(z,origin)*distanceFromOrigin;
                     }
-                    return get();
                 }
                 public vec3 direction(vec3 point,vec3 origin){ 
                     vec3 v = point-origin;
@@ -102,6 +93,11 @@ public class FreePointEnviroment : Component
                         }
                         availableKeys += increaseLimit;
                         amountOfKeys += increaseLimit;
+                    }
+                }
+                public void setLimit(int limit){
+                    if(limit > 0){
+                        increaseLimit = limit;
                     }
                 }
                 public void addKey(int key){
@@ -145,14 +141,10 @@ public class FreePointEnviroment : Component
                     newBody.keyGenerator.init();
                     return newBody;
                 }
-                public BodyData get(){
-                    return this;
-                }
-                public BodyData setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure,KeyGenerator keyGenerator){
+                public void setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure,KeyGenerator keyGenerator){
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                     this.keyGenerator = keyGenerator;
-                    return get();
                 }
                 public Joint getJoint(int key){
                    return bodyStructure.TryGetValue(key, out Joint joint)? joint : null;
@@ -170,12 +162,24 @@ public class FreePointEnviroment : Component
                         keyGenerator.addKey(key);
                     }
                 }
+                public void addLimb(int startFrom, BodyData externalBody){
+
+                }
             }
 
             public class Connection {
                 public int keyInDictionary;
                 public int connectedFrom;
-                public List<int> connectedTo; 
+                public List<int> connectedTo;
+
+                public Connection init(){
+                    return new Connection();
+                }
+                public void setAll(int keyInDictionary,int connectedFrom,List<int> connectedTo){
+                    this.keyInDictionary = keyInDictionary;
+                    this.connectedFrom = connectedFrom;
+                    this.connectedTo = connectedTo;
+                }
             }
 
             public class Joint {
@@ -187,22 +191,28 @@ public class FreePointEnviroment : Component
                 public Joint init(){
                     return new Joint();
                 }
-                public Joint get(){
-                    return this;
-                }
-                public Joint setAll(Connection connection,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere,KeyGenerator keyGenerator){
+                public void setAll(Connection connection,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere,KeyGenerator keyGenerator){
                     this.connection = connection;
                     this.localAxis = localAxis;
                     this.collisionSphere = collisionSphere;
                     this.keyGenerator = keyGenerator;
-                    return get();
                 }
             }
             public class Path {
-                public string CollisionSphereName;
-                public string BodyDataName;
+                public string collisionSphereName;
+                public string bodyDataName;
                 public int jointKey;
                 public int collisionSphereKey;
+                public Path init(){
+                    return new Path();
+                }
+                public void setAll(string collisionSphereName,string bodyDataName,int jointKey,int collisionSphereKey){
+                    this.collisionSphereName=collisionSphereName;
+                    this.bodyDataName=bodyDataName;
+                    this.jointKey=jointKey;
+                    this.collisionSphereKey=collisionSphereKey;
+                }
+
             }
 
             public class CollisionSphere {
@@ -241,14 +251,10 @@ public class FreePointEnviroment : Component
                 public Triangle init(){
                     return new Triangle();
                 }
-                public Triangle get(){
-                    return this;
-                }
-                public Triangle setAll(int a,int b,int c){
+                public void setAll(int a,int b,int c){
                     this.a = a;
                     this.b = b;
                     this.c = c;
-                    return get();
                 }
             }
 
@@ -259,13 +265,9 @@ public class FreePointEnviroment : Component
                 public BodyMesh init(){
                     return new BodyMesh();
                 }
-                public BodyMesh get(){
-                    return this;
-                }
-                public BodyMesh setAll(List<vec3> vertex,List<Triangle> indices){
+                public void setAll(List<vec3> vertex,List<Triangle> indices){
                     this.vertex = vertex;
                     this.indices = indices;
-                    return get();
                 }
             }
 
@@ -274,16 +276,11 @@ public class FreePointEnviroment : Component
                 public Timer init(){
                     return new Timer();
                 }
-                public Timer get(){
-                    return this;
-                }
-                public Timer setAll(float time){
+                public void setAll(float time){
                     this.time = time;
-                    return get();
                 }
-                public Timer add(float time){
+                public void add(float time){
                     this.time += time;
-                    return get();
                 }
 
             }
