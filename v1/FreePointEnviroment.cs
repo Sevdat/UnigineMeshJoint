@@ -50,13 +50,13 @@ public class FreePointEnviroment : Component
                     this.z = z;
                 }
                 public void setAll(vec3 origin,vec3 x,vec3 y,vec3 z){
-                    this.origin = origin;
-                    this.x = x;
-                    this.y = y;
-                    this.z = z;
+                    setOrigin(origin);
+                    setX(x);
+                    setY(y);
+                    setZ(z);
                 }
                 public void scale(float distanceFromOrigin){
-                    if (distanceFromOrigin != 0){
+                    if (distanceFromOrigin > 0){
                         bool gateX = x == vec3.ZERO;
                         bool gateY = y == vec3.ZERO;
                         bool gateZ = z == vec3.ZERO;
@@ -95,18 +95,21 @@ public class FreePointEnviroment : Component
                         amountOfKeys += increaseLimit;
                     }
                 }
-                public void setLimit(int limit){
-                    if(limit > 0){
-                        increaseLimit = limit;
+                public void setLimit(int newLimit){
+                    if(newLimit > 0){
+                        increaseLimit = newLimit;
                     }
                 }
-                public void addKey(int key){
+                public void returnKey(int key){
                     freeKeys.Add(key);
                     availableKeys +=1;
                 }
-                public void removeKey(){
+                public int getKey(){
+                    generateKeys();
+                    int key = freeKeys[0];
                     freeKeys.RemoveAt(0);
                     availableKeys -= 1;
+                    return key;
                 }
                 public void optiomizeKeys(){
                     freeKeys.Sort();
@@ -150,20 +153,36 @@ public class FreePointEnviroment : Component
                    return bodyStructure.TryGetValue(key, out Joint joint)? joint : null;
                 }
                 public void addToDictionary(Joint joint){
-                    keyGenerator.generateKeys();
-                    int key = keyGenerator.freeKeys[0];
-                    joint.connection.keyInDictionary = key;
-                    bodyStructure.Add(key,joint);
-                    keyGenerator.removeKey();
+
                 }
                 public void deleteFromDictionary(int key){
                     bool remove = bodyStructure.Remove(key);
                     if(remove){
-                        keyGenerator.addKey(key);
+                        keyGenerator.returnKey(key);
                     }
                 }
-                public void addLimb(int startFrom, BodyData externalBody){
-
+                public void addLimb(int addToKey, int fromExternalKey, BodyData externalBody){
+                    Connection externalJoint = externalBody.getJoint(fromExternalKey).connection;
+                    Connection internalJoint = getJoint(addToKey).connection;
+                    Dictionary<int,int> newKeys = new Dictionary<int,int>();
+                    if(externalJoint != null && internalJoint != null){
+                        foreach(int i in externalJoint.connectedTo){
+                            bool checkList = newKeys.TryGetValue(i, out int e);
+                            if(!checkList){
+                                newKeys.Add(i,keyGenerator.getKey());
+                            }
+                        }
+                        int fromValue = externalJoint.connectedFrom;
+                        bool checkFrom = newKeys.TryGetValue(fromValue, out int from);
+                        if(!checkFrom){
+                                newKeys.Add(fromValue,keyGenerator.getKey());
+                            }
+                        int fromSelf = externalJoint.connectedFrom;
+                        bool checkSelf = newKeys.TryGetValue(fromSelf, out int self);
+                        if(!checkSelf){
+                                newKeys.Add(fromSelf,keyGenerator.getKey());
+                            }
+                    }
                 }
             }
 
