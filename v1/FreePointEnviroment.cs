@@ -77,39 +77,37 @@ public class FreePointEnviroment : Component
                 }
             }
             public class KeyGenerator{
-                public int amountOfKeys;
+                public int maxKeys;
                 public int availableKeys;
-                public int increaseLimit;
+                public int increaseKeysBy;
                 public List<int> freeKeys;
 
-                public void init(){
-                    increaseLimit = 10;
+                public void init(int amountOfKeys){
+                    increaseKeysBy = amountOfKeys;
                     generateKeys();
                 }
                 public void generateKeys(){
-                    if(availableKeys == 0){
-                        for(int i = 0; i < increaseLimit; i++){
-                            freeKeys.Add(i+amountOfKeys);
-                        }
-                        availableKeys += increaseLimit;
-                        amountOfKeys += increaseLimit;
+                    for(int i = 0; i < increaseKeysBy; i++){
+                        freeKeys.Add(i+maxKeys);
                     }
+                    availableKeys += increaseKeysBy;
+                    maxKeys += increaseKeysBy;
                 }
                 public void setLimit(int newLimit){
                     if(newLimit > 0){
-                        increaseLimit = newLimit;
+                        increaseKeysBy = newLimit;
                     }
                 }
-                public void returnKey(int key){
-                    freeKeys.Add(key);
-                    availableKeys +=1;
-                }
                 public int getKey(){
-                    generateKeys();
+                    if(availableKeys <= 0) generateKeys();
                     int key = freeKeys[0];
                     freeKeys.RemoveAt(0);
                     availableKeys -= 1;
                     return key;
+                }
+                public void returnKey(int key){
+                    freeKeys.Add(key);
+                    availableKeys +=1;
                 }
                 public void optiomizeKeys(){
                     freeKeys.Sort();
@@ -129,61 +127,59 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i< size; i++){
                         freeKeys.RemoveAt(index);
                     }
-                    amountOfKeys = size;
+                    maxKeys = size;
                     generateKeys();
+                }
+                public void orginizeKeys(int checkKey, Dictionary<int,int> newKeys){
+                    if(!newKeys.TryGetValue(checkKey, out int e)){
+                        newKeys.Add(checkKey,getKey());
+                    }
                 }
             }
             public class BodyData {
                 public string BodyDataName;
                 public Axis globalAxis;
-                public Dictionary<int,Joint> bodyStructure;
+                public Joint[] bodyStructure;
                 public KeyGenerator keyGenerator;
 
-                public BodyData init(){
+                public BodyData init(int amountOfIndexes){
                     BodyData newBody = new BodyData();
-                    newBody.keyGenerator.init();
+                    bodyStructure = new Joint[amountOfIndexes];
+                    newBody.keyGenerator.init(amountOfIndexes);
                     return newBody;
                 }
-                public void setAll(Axis globalAxis,Dictionary<int,Joint> bodyStructure,KeyGenerator keyGenerator){
+                public void setAll(Axis globalAxis,Joint[] bodyStructure,KeyGenerator keyGenerator){
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                     this.keyGenerator = keyGenerator;
                 }
                 public Joint getJoint(int key){
-                   return bodyStructure.TryGetValue(key, out Joint joint)? joint : null;
+                   return bodyStructure[key];
                 }
                 public void addToDictionary(Joint joint){
 
                 }
                 public void deleteFromDictionary(int key){
-                    bool remove = bodyStructure.Remove(key);
-                    if(remove){
+                   Joint remove = bodyStructure[key];
+                    if(remove != null){
                         keyGenerator.returnKey(key);
+                        bodyStructure[key] = null;
                     }
                 }
-                public void addLimb(int addToKey, int fromExternalKey, BodyData externalBody){
-                    Connection externalJoint = externalBody.getJoint(fromExternalKey).connection;
-                    Connection internalJoint = getJoint(addToKey).connection;
-                    Dictionary<int,int> newKeys = new Dictionary<int,int>();
-                    if(externalJoint != null && internalJoint != null){
-                        foreach(int i in externalJoint.connectedTo){
-                            bool checkList = newKeys.TryGetValue(i, out int e);
-                            if(!checkList){
-                                newKeys.Add(i,keyGenerator.getKey());
-                            }
-                        }
-                        int fromValue = externalJoint.connectedFrom;
-                        bool checkFrom = newKeys.TryGetValue(fromValue, out int from);
-                        if(!checkFrom){
-                                newKeys.Add(fromValue,keyGenerator.getKey());
-                            }
-                        int fromSelf = externalJoint.connectedFrom;
-                        bool checkSelf = newKeys.TryGetValue(fromSelf, out int self);
-                        if(!checkSelf){
-                                newKeys.Add(fromSelf,keyGenerator.getKey());
-                            }
-                    }
-                }
+                // public void addLimb(int addToKey, int fromExternalKey, BodyData externalBody){
+                //     Connection externalJoint = externalBody.getJoint(fromExternalKey).connection;
+                //     Connection internalJoint = getJoint(addToKey).connection;
+                //     Dictionary<int,int> newKeys = new Dictionary<int,int>();
+                //     if(externalJoint != null && internalJoint != null){
+                //         foreach(int i in externalJoint.connectedTo){
+                //             orginizeKeys(i,newKeys);
+                //         }
+                //         int fromValue = externalJoint.connectedFrom;
+                //         orginizeKeys(fromValue,newKeys);
+                //         int fromSelf = externalJoint.connectedFrom;
+                //         orginizeKeys(fromSelf,newKeys);
+                //     }
+                // }
             }
 
             public class Connection {
@@ -204,13 +200,13 @@ public class FreePointEnviroment : Component
             public class Joint {
                 public Axis localAxis;
                 public Connection connection;
-                public Dictionary<int,CollisionSphere> collisionSphere;
+                public CollisionSphere[] collisionSphere;
                 public KeyGenerator keyGenerator;
 
                 public Joint init(){
                     return new Joint();
                 }
-                public void setAll(Connection connection,Axis localAxis,Dictionary<int,CollisionSphere> collisionSphere,KeyGenerator keyGenerator){
+                public void setAll(Connection connection,Axis localAxis,CollisionSphere[] collisionSphere,KeyGenerator keyGenerator){
                     this.connection = connection;
                     this.localAxis = localAxis;
                     this.collisionSphere = collisionSphere;
