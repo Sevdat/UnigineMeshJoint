@@ -109,30 +109,32 @@ public class FreePointEnviroment : Component
                     freeKeys.Add(key);
                     availableKeys +=1;
                 }
-                public void optiomizeKeys(){
-                    freeKeys.Sort();
-                    int size = freeKeys.Count;
-                    int number = 0;
-                    int add = 0;
-                    int index = 0;
-                    for(int i = 0; i< size; i++){
-                        int key = freeKeys[i];
-                        if (key != number+add) {
-                            number = key;
-                            add = 1;
-                            index = i;
-                            } else add++;
+                public bool checkSet(int key, int?[] keys, int count){
+                    int? check = keys[key];
+                    if (check != null){
+                        keys[key] = count;
+                        return true;
                     }
-                    size = size-index;
-                    for (int i = 0; i< size; i++){
-                        freeKeys.RemoveAt(index);
-                    }
-                    maxKeys = size;
-                    generateKeys();
+                    return false;
                 }
-                public void orginizeKeys(int checkKey, Dictionary<int,int> newKeys){
-                    if(!newKeys.TryGetValue(checkKey, out int e)){
-                        newKeys.Add(checkKey,getKey());
+                public void optiomizeKeys(BodyData bodyData, int addExtraKeys){
+                    int count = 0;
+                    int size = 
+                        bodyData.keyGenerator.maxKeys - bodyData.keyGenerator.availableKeys;
+                    int?[] keyManager = new int?[size];
+                    Joint[] newJoint = new Joint[size + addExtraKeys];
+                    for (int i = 0; i < size; i++){
+                        Joint joint = bodyData.bodyStructure[i];
+                        if(joint != null){
+                            int current = joint.connection.keyInArray; // not completed
+                            int past = joint.connection.connectedFrom;
+                            List<int> future = joint.connection.connectedTo;
+                            if (checkSet(current,keyManager,count)){
+                                joint.connection.setKeyInArray(count);
+                            }
+                            keyManager[current] = count;
+                            count++;
+                        }
                     }
                 }
             }
@@ -166,32 +168,27 @@ public class FreePointEnviroment : Component
                         bodyStructure[key] = null;
                     }
                 }
-                // public void addLimb(int addToKey, int fromExternalKey, BodyData externalBody){
-                //     Connection externalJoint = externalBody.getJoint(fromExternalKey).connection;
-                //     Connection internalJoint = getJoint(addToKey).connection;
-                //     Dictionary<int,int> newKeys = new Dictionary<int,int>();
-                //     if(externalJoint != null && internalJoint != null){
-                //         foreach(int i in externalJoint.connectedTo){
-                //             orginizeKeys(i,newKeys);
-                //         }
-                //         int fromValue = externalJoint.connectedFrom;
-                //         orginizeKeys(fromValue,newKeys);
-                //         int fromSelf = externalJoint.connectedFrom;
-                //         orginizeKeys(fromSelf,newKeys);
-                //     }
-                // }
             }
 
             public class Connection {
-                public int keyInDictionary;
+                public int keyInArray;
                 public int connectedFrom;
                 public List<int> connectedTo;
 
                 public Connection init(){
                     return new Connection();
                 }
-                public void setAll(int keyInDictionary,int connectedFrom,List<int> connectedTo){
-                    this.keyInDictionary = keyInDictionary;
+                public void setKeyInArray(int keyInArray){
+                    this.keyInArray = keyInArray;
+                }
+                public void setConnectedFrom(int connectedFrom){
+                    this.connectedFrom = connectedFrom;
+                }
+                public void setConnectedTo(List<int> connectedTo){
+                    this.connectedTo = connectedTo;
+                }
+                public void setAll(int keyInArray,int connectedFrom,List<int> connectedTo){
+                    this.keyInArray = keyInArray;
                     this.connectedFrom = connectedFrom;
                     this.connectedTo = connectedTo;
                 }
