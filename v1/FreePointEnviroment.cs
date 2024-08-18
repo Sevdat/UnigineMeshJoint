@@ -153,7 +153,8 @@ public class FreePointEnviroment : Component
                             );
                     }  
                     bodyData.bodyStructure = newJoint;  
-                    maxKeys = count;
+                    maxKeys = count + addExtraKeys;
+                    availableKeys = addExtraKeys;
                     freeKeys.Clear();
                     generateKeys();
                 }
