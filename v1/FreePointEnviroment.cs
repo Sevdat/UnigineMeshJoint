@@ -126,16 +126,47 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i < size; i++){
                         Joint joint = bodyData.bodyStructure[i];
                         if(joint != null){
-                            int current = joint.connection.keyInArray; // not completed
-                            int past = joint.connection.connectedFrom;
-                            List<int> future = joint.connection.connectedTo;
-                            if (checkSet(current,keyManager,count)){
-                                joint.connection.setKeyInArray(count);
-                            }
+                            int current = joint.connection.current;
                             keyManager[current] = count;
+                            joint.connection.setCurrent(count);
                             count++;
                         }
                     }
+
+                    for (int i = 0; i<count; i++) {
+                        Joint joint = newJoint[i];
+                        List<int> past = joint.connection.past;
+                        List<int> newPast = new List<int>();
+                        for (int j = 0; j < past.Count; j++) {
+                            int? index = keyManager[past[j]];
+                            if (index == null){
+                                keyManager[past[j]] = count;
+                                newPast.Add(count);
+                                count++;
+                            } else {
+                                newPast.Add((int)index);
+                            }
+                        }
+                        joint.connection.setPast(newPast);
+   
+                        List<int> future = joint.connection.future;
+                        List<int> newFuture = new List<int>();
+                        for (int j = 0; j < future.Count; j++) {
+                            int? index = keyManager[future[j]];
+                            if (index == null){
+                                keyManager[future[j]] = count;
+                                newFuture.Add(count);
+                                count++;
+                            } else {
+                                newFuture.Add((int)index);
+                            }
+                        }
+                        joint.connection.setFuture(newFuture);
+                    }  
+                    bodyData.bodyStructure = newJoint;  
+                    maxKeys = count;
+                    freeKeys.Clear();
+                    generateKeys();
                 }
             }
             public class BodyData {
@@ -171,26 +202,25 @@ public class FreePointEnviroment : Component
             }
 
             public class Connection {
-                public int keyInArray;
-                public int connectedFrom;
-                public List<int> connectedTo;
+                public int current;
+                public List<int> past, future;
 
                 public Connection init(){
                     return new Connection();
                 }
-                public void setKeyInArray(int keyInArray){
-                    this.keyInArray = keyInArray;
+                public void setCurrent(int current){
+                    this.current = current;
                 }
-                public void setConnectedFrom(int connectedFrom){
-                    this.connectedFrom = connectedFrom;
+                public void setPast(List<int> past){
+                    this.past = past;
                 }
-                public void setConnectedTo(List<int> connectedTo){
-                    this.connectedTo = connectedTo;
+                public void setFuture(List<int> future){
+                    this.future = future;
                 }
-                public void setAll(int keyInArray,int connectedFrom,List<int> connectedTo){
-                    this.keyInArray = keyInArray;
-                    this.connectedFrom = connectedFrom;
-                    this.connectedTo = connectedTo;
+                public void setAll(int current,List<int> past,List<int> future){
+                    this.current = current;
+                    this.past = past;
+                    this.future = future;
                 }
             }
 
