@@ -117,6 +117,16 @@ public class FreePointEnviroment : Component
                     }
                     return false;
                 }
+                public List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
+                    List<int> newConnection = new List<int>();
+                    for (int j = 0; j < connectionList.Count; j++) {
+                        int? index = keyManager[connectionList[j]];
+                        if (index != null){
+                            newConnection.Add((int)index);
+                        }
+                    }
+                    return newConnection;
+                }
                 public void optiomizeKeys(BodyData bodyData, int addExtraKeys){
                     int count = 0;
                     int size = 
@@ -135,33 +145,12 @@ public class FreePointEnviroment : Component
 
                     for (int i = 0; i<count; i++) {
                         Joint joint = newJoint[i];
-                        List<int> past = joint.connection.past;
-                        List<int> newPast = new List<int>();
-                        for (int j = 0; j < past.Count; j++) {
-                            int? index = keyManager[past[j]];
-                            if (index == null){
-                                keyManager[past[j]] = count;
-                                newPast.Add(count);
-                                count++;
-                            } else {
-                                newPast.Add((int)index);
-                            }
-                        }
-                        joint.connection.setPast(newPast);
-   
-                        List<int> future = joint.connection.future;
-                        List<int> newFuture = new List<int>();
-                        for (int j = 0; j < future.Count; j++) {
-                            int? index = keyManager[future[j]];
-                            if (index == null){
-                                keyManager[future[j]] = count;
-                                newFuture.Add(count);
-                                count++;
-                            } else {
-                                newFuture.Add((int)index);
-                            }
-                        }
-                        joint.connection.setFuture(newFuture);
+                        joint.connection.setPast(
+                            orginizeKeys(joint.connection.past,keyManager)
+                            );
+                        joint.connection.setFuture(
+                            orginizeKeys(joint.connection.future,keyManager)
+                            );
                     }  
                     bodyData.bodyStructure = newJoint;  
                     maxKeys = count;
