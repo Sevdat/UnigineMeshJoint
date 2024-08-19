@@ -127,18 +127,20 @@ public class FreePointEnviroment : Component
                     }
                     return newConnection;
                 }
+                
                 public void optiomizeKeys(BodyData bodyData, int addExtraKeys){
+                    int maxSize = bodyData.keyGenerator.maxKeys;
+                    int usedSize = maxSize - bodyData.keyGenerator.availableKeys;
+                    int?[] jointKeyManager = new int?[maxSize];
+                    Joint[] newJoint = new Joint[usedSize + addExtraKeys];
                     int count = 0;
-                    int size = 
-                        bodyData.keyGenerator.maxKeys - bodyData.keyGenerator.availableKeys;
-                    int?[] keyManager = new int?[size];
-                    Joint[] newJoint = new Joint[size + addExtraKeys];
-                    for (int i = 0; i < size; i++){
+                    for (int i = 0; i < maxSize; i++){
                         Joint joint = bodyData.bodyStructure[i];
                         if(joint != null){
                             int current = joint.connection.current;
-                            keyManager[current] = count;
+                            jointKeyManager[current] = count;
                             joint.connection.setCurrent(count);
+                            newJoint[count] = joint;
                             count++;
                         }
                     }
@@ -146,10 +148,10 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i<count; i++) {
                         Joint joint = newJoint[i];
                         joint.connection.setPast(
-                            orginizeKeys(joint.connection.past,keyManager)
+                            orginizeKeys(joint.connection.past,jointKeyManager)
                             );
                         joint.connection.setFuture(
-                            orginizeKeys(joint.connection.future,keyManager)
+                            orginizeKeys(joint.connection.future,jointKeyManager)
                             );
                     }  
                     bodyData.bodyStructure = newJoint;  
