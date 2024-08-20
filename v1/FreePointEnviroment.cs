@@ -117,7 +117,8 @@ public class FreePointEnviroment : Component
                     }
                     return false;
                 }
-                public List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
+
+                List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
                     List<int> newConnection = new List<int>();
                     for (int j = 0; j < connectionList.Count; j++) {
                         int? index = keyManager[connectionList[j]];
@@ -128,38 +129,45 @@ public class FreePointEnviroment : Component
                     return newConnection;
                 }
                 
-                public void optiomizeKeys(BodyData bodyData, int addExtraKeys){
-                    int maxSize = bodyData.keyGenerator.maxKeys;
-                    int usedSize = maxSize - bodyData.keyGenerator.availableKeys;
-                    int?[] jointKeyManager = new int?[maxSize];
-                    Joint[] newJoint = new Joint[usedSize + addExtraKeys];
-                    int count = 0;
-                    for (int i = 0; i < maxSize; i++){
+                public void optiomizeKeys(BodyData bodyData){
+                    List<Joint> joints = new List<Joint>();
+                    int jointSize = bodyData.bodyStructure.Length;
+                    int?[] keys = new int?[jointSize];
+                    int jointCount = 0;
+                    for (int i = 0; i<jointSize; i++){
                         Joint joint = bodyData.bodyStructure[i];
-                        if(joint != null){
-                            int current = joint.connection.current;
-                            jointKeyManager[current] = count;
-                            joint.connection.setCurrent(count);
-                            newJoint[count] = joint;
-                            count++;
-                        }
+                        if (joint != null){
+                            int collisionSize = joint.collisionSphere.Length;
+                            List<CollisionSphere> newCollision = new List<CollisionSphere>();
+                            int collisionCount = 0;
+                            for (int j = 0; j<collisionSize; j++){
+                                CollisionSphere collision = joint.collisionSphere[j];
+                                if (collision != null){
+                                    newCollision.Add(collision);
+                                    collisionCount++;
+                                }
+                            }
+                            bodyData.bodyStructure[i].collisionSphere = newCollision.ToArray();
+                            joints.Add(joint);
+                            keys[joint.connection.current] = jointCount;
+                            joint.connection.current = jointCount;
+                            jointCount++;
+                        } 
                     }
 
-                    for (int i = 0; i<count; i++) {
-                        Joint joint = newJoint[i];
+                    for (int i = 0; i<jointCount; i++) {
+                        Joint joint = joints[i];
                         joint.connection.setPast(
-                            orginizeKeys(joint.connection.past,jointKeyManager)
+                            orginizeKeys(joint.connection.past,keys)
                             );
                         joint.connection.setFuture(
-                            orginizeKeys(joint.connection.future,jointKeyManager)
+                            orginizeKeys(joint.connection.future,keys)
                             );
                     }  
-                    bodyData.bodyStructure = newJoint;  
-                    freeKeys.Clear();
-                    maxKeys = count;
-                    availableKeys = 0;
-                    increaseKeysBy = addExtraKeys;
-                    generateKeys();
+
+                    bodyData.bodyStructure = joints.ToArray();
+                    
+
                 }
             }
             public class BodyData {
