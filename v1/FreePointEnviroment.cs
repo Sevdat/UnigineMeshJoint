@@ -130,26 +130,32 @@ public class FreePointEnviroment : Component
                 }
                 
                 public void optiomizeKeys(BodyData bodyData){
-                    List<Joint> joints = new List<Joint>();
+                    Joint[] joints = new Joint[
+                        bodyData.keyGenerator.maxKeys-bodyData.keyGenerator.availableKeys
+                        ];
                     int jointSize = bodyData.bodyStructure.Length;
-                    int?[] keys = new int?[jointSize];
+                    int?[] keyManager = new int?[jointSize];
                     int jointCount = 0;
                     for (int i = 0; i<jointSize; i++){
                         Joint joint = bodyData.bodyStructure[i];
                         if (joint != null){
                             int collisionSize = joint.collisionSphere.Length;
-                            List<CollisionSphere> newCollision = new List<CollisionSphere>();
+                            CollisionSphere[] newCollision = new CollisionSphere[
+                                joint.keyGenerator.maxKeys-joint.keyGenerator.availableKeys
+                            ];
                             int collisionCount = 0;
                             for (int j = 0; j<collisionSize; j++){
                                 CollisionSphere collision = joint.collisionSphere[j];
                                 if (collision != null){
-                                    newCollision.Add(collision);
+                                    collision.path.setJointKey(jointCount);
+                                    collision.path.setCollisionSphereKey(collisionCount);
+                                    newCollision[collisionCount] = collision;
                                     collisionCount++;
                                 }
                             }
-                            bodyData.bodyStructure[i].collisionSphere = newCollision.ToArray();
-                            joints.Add(joint);
-                            keys[joint.connection.current] = jointCount;
+                            bodyData.bodyStructure[i].collisionSphere = newCollision;
+                            joints[jointCount] = joint;
+                            keyManager[joint.connection.current] = jointCount;
                             joint.connection.current = jointCount;
                             jointCount++;
                         } 
@@ -158,14 +164,14 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i<jointCount; i++) {
                         Joint joint = joints[i];
                         joint.connection.setPast(
-                            orginizeKeys(joint.connection.past,keys)
+                            orginizeKeys(joint.connection.past,keyManager)
                             );
                         joint.connection.setFuture(
-                            orginizeKeys(joint.connection.future,keys)
+                            orginizeKeys(joint.connection.future,keyManager)
                             );
                     }  
 
-                    bodyData.bodyStructure = joints.ToArray();
+                    bodyData.bodyStructure = joints;
                     
 
                 }
@@ -248,6 +254,12 @@ public class FreePointEnviroment : Component
                 public int collisionSphereKey;
                 public Path init(){
                     return new Path();
+                }
+                public void setJointKey(int jointKey){
+                    this.jointKey = jointKey;
+                }
+                public void setCollisionSphereKey(int collisionSphereKey){
+                    this.collisionSphereKey = collisionSphereKey;
                 }
                 public void setAll(string collisionSphereName,string bodyDataName,int jointKey,int collisionSphereKey){
                     this.collisionSphereName=collisionSphereName;
