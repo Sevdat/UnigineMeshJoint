@@ -117,64 +117,6 @@ public class FreePointEnviroment : Component
                     }
                     return false;
                 }
-
-                List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
-                    List<int> newConnection = new List<int>();
-                    for (int j = 0; j < connectionList.Count; j++) {
-                        int? index = keyManager[connectionList[j]];
-                        if (index != null){
-                            newConnection.Add((int)index);
-                        }
-                    }
-                    return newConnection;
-                }
-                
-                public void optiomizeKeys(BodyData bodyData){
-                    Joint[] joints = new Joint[
-                        bodyData.keyGenerator.maxKeys-bodyData.keyGenerator.availableKeys
-                        ];
-                    int jointSize = bodyData.bodyStructure.Length;
-                    int?[] keyManager = new int?[jointSize];
-                    int jointCount = 0;
-                    for (int i = 0; i<jointSize; i++){
-                        Joint joint = bodyData.bodyStructure[i];
-                        if (joint != null){
-                            int collisionSize = joint.collisionSphere.Length;
-                            CollisionSphere[] newCollision = new CollisionSphere[
-                                joint.keyGenerator.maxKeys-joint.keyGenerator.availableKeys
-                            ];
-                            int collisionCount = 0;
-                            for (int j = 0; j<collisionSize; j++){
-                                CollisionSphere collision = joint.collisionSphere[j];
-                                if (collision != null){
-                                    collision.path.setJointKey(jointCount);
-                                    collision.path.setCollisionSphereKey(collisionCount);
-                                    newCollision[collisionCount] = collision;
-                                    collisionCount++;
-                                }
-                            }
-                            bodyData.bodyStructure[i].collisionSphere = newCollision;
-                            joints[jointCount] = joint;
-                            keyManager[joint.connection.current] = jointCount;
-                            joint.connection.current = jointCount;
-                            jointCount++;
-                        } 
-                    }
-
-                    for (int i = 0; i<jointCount; i++) {
-                        Joint joint = joints[i];
-                        joint.connection.setPast(
-                            orginizeKeys(joint.connection.past,keyManager)
-                            );
-                        joint.connection.setFuture(
-                            orginizeKeys(joint.connection.future,keyManager)
-                            );
-                    }  
-
-                    bodyData.bodyStructure = joints;
-                    
-
-                }
             }
             public class BodyData {
                 public string BodyDataName;
@@ -205,6 +147,59 @@ public class FreePointEnviroment : Component
                         keyGenerator.returnKey(key);
                         bodyStructure[key] = null;
                     }
+                }
+                List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
+                    List<int> newConnection = new List<int>();
+                    for (int j = 0; j < connectionList.Count; j++) {
+                        int? index = keyManager[connectionList[j]];
+                        if (index != null){
+                            newConnection.Add((int)index);
+                        }
+                    }
+                    return newConnection;
+                }
+                
+                public void optiomizeBody(){
+                    Joint[] joints = new Joint[
+                        keyGenerator.maxKeys-keyGenerator.availableKeys
+                        ];
+                    int jointSize = bodyStructure.Length;
+                    int?[] keyManager = new int?[jointSize];
+                    int jointCount = 0;
+                    for (int i = 0; i<jointSize; i++){
+                        Joint joint = bodyStructure[i];
+                        if (joint != null){
+                            int collisionSize = joint.collisionSphere.Length;
+                            CollisionSphere[] newCollision = new CollisionSphere[
+                                joint.keyGenerator.maxKeys-joint.keyGenerator.availableKeys
+                            ];
+                            int collisionCount = 0;
+                            for (int j = 0; j<collisionSize; j++){
+                                CollisionSphere collision = joint.collisionSphere[j];
+                                if (collision != null){
+                                    collision.path.setJointKey(jointCount);
+                                    collision.path.setCollisionSphereKey(collisionCount);
+                                    newCollision[collisionCount] = collision;
+                                    collisionCount++;
+                                }
+                            }
+                            bodyStructure[i].collisionSphere = newCollision;
+                            joints[jointCount] = joint;
+                            keyManager[joint.connection.current] = jointCount;
+                            joint.connection.current = jointCount;
+                            jointCount++;
+                        } 
+                    }
+                    for (int i = 0; i<jointCount; i++) {
+                        Joint joint = joints[i];
+                        joint.connection.setPast(
+                            orginizeKeys(joint.connection.past,keyManager)
+                            );
+                        joint.connection.setFuture(
+                            orginizeKeys(joint.connection.future,keyManager)
+                            );
+                    }
+                    bodyStructure = joints;
                 }
             }
 
