@@ -84,6 +84,7 @@ public class FreePointEnviroment : Component
 
                 public void init(int amountOfKeys){
                     increaseKeysBy = amountOfKeys;
+                    maxKeys = amountOfKeys;
                     generateKeys();
                 }
                 public void generateKeys(){
@@ -99,7 +100,6 @@ public class FreePointEnviroment : Component
                     }
                 }
                 public int getKey(){
-                    if(availableKeys == 0) generateKeys();
                     int key = freeKeys[0];
                     freeKeys.RemoveAt(0);
                     availableKeys -= 1;
@@ -135,9 +135,24 @@ public class FreePointEnviroment : Component
                 public Joint getJoint(int key){
                    return bodyStructure[key];
                 }
+                void resizeJoints(){
+                    if(keyGenerator.availableKeys == 0) {
+                        keyGenerator.generateKeys();
+                        int max = keyGenerator.maxKeys;
+                        int newSize = max + keyGenerator.increaseKeysBy;
+                        Joint[] newJointArray = new Joint[newSize];
+                        for (int i = 0; i<max; i++){
+                            Joint joint = bodyStructure[i];
+                            if (joint != null){
+                                newJointArray[i] = joint;
+                            }
+                        }
+                    }
+                }
                 public void addToDictionary(Joint joint){
+                    resizeJoints();
                     int key = keyGenerator.getKey();
-
+                    bodyStructure[key] = joint;
                 }
                 public void deleteFromDictionary(int key){
                    Joint remove = bodyStructure[key];
