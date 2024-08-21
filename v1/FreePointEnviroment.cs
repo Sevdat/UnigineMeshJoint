@@ -149,12 +149,12 @@ public class FreePointEnviroment : Component
                         }
                     }
                 }
-                public void addToDictionary(Joint joint){
+                public void addJoint(Joint joint){
                     resizeJoints();
                     int key = keyGenerator.getKey();
                     bodyStructure[key] = joint;
                 }
-                public void deleteFromDictionary(int key){
+                public void deleteJoint(int key){
                    Joint remove = bodyStructure[key];
                     if(remove != null){
                         keyGenerator.returnKey(key);
@@ -162,7 +162,7 @@ public class FreePointEnviroment : Component
                     }
                 }
 
-                List<int> orginizeKeys(List<int> connectionList, int?[] keyManager){
+                List<int> replaceKeys(List<int> connectionList, int?[] keyManager){
                     List<int> newConnection = new List<int>();
                     for (int j = 0; j < connectionList.Count; j++) {
                         int? index = keyManager[connectionList[j]];
@@ -171,6 +171,17 @@ public class FreePointEnviroment : Component
                         }
                     }
                     return newConnection;
+                }
+                void replaceConnections(int jointCount,Joint[] joints,int?[] keyManager){
+                    for (int i = 0; i<jointCount; i++) {
+                        Joint joint = joints[i];
+                        joint.connection.setPast(
+                            replaceKeys(joint.connection.past,keyManager)
+                            );
+                        joint.connection.setFuture(
+                            replaceKeys(joint.connection.future,keyManager)
+                            );
+                    }
                 }
                 public void optiomizeBody(){
                     int maxJointKeys = keyGenerator.maxKeys;
@@ -201,15 +212,7 @@ public class FreePointEnviroment : Component
                             jointCount++;
                         } 
                     }
-                    for (int i = 0; i<jointCount; i++) {
-                        Joint joint = joints[i];
-                        joint.connection.setPast(
-                            orginizeKeys(joint.connection.past,keyManager)
-                            );
-                        joint.connection.setFuture(
-                            orginizeKeys(joint.connection.future,keyManager)
-                            );
-                    }
+                    replaceConnections(jointCount,joints,keyManager);
                     bodyStructure = joints;
                     keyGenerator.resetGenerator(jointSize);
                 }
