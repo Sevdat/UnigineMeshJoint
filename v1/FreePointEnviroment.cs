@@ -161,29 +161,38 @@ public class FreePointEnviroment : Component
                         bodyStructure[key] = null;
                     }
                 }
-                int?[] keyManager(int maxkeys, Joint[] joints, out int count){
+                void keyManager(
+                    Joint[] joints, int maxKeys, int availableKeys, 
+                    out int count, out int?[] newKeys, out Joint[] orginizedJoints
+                    ){
                     int index = 0;
-                    int?[] keys = new int?[maxkeys];
-                    for (int i = 0; i<maxkeys; i++){
+                    int?[] keys = new int?[maxKeys];
+                    Joint[] newJoints = new Joint[maxKeys - availableKeys];
+                    for (int i = 0; i<maxKeys; i++){
                         Joint joint = joints[i];
                         if (joint != null){
                             keys[joint.connection.current] = index;
+                            joint.connection.setCurrent(index);
+                            newJoints[index] = joint;
                             index++;
                         }
                     }
                     count = index;
-                    return keys;
+                    orginizedJoints = newJoints;
+                    newKeys = keys;
                 }
-                public void optiomizeBody(){
-                    int maxKeys = keyGenerator.maxKeys;
+                public void optimizeBody(){
                     int count;
-                    int?[] newKeys = keyManager(maxKeys, bodyStructure, out count);
-                    Joint[] joints = new Joint[count];
+                    int?[] newKeys;
+                    Joint[] joints;
+                    keyManager(
+                        bodyStructure, keyGenerator.maxKeys, keyGenerator.availableKeys,
+                        out count, out newKeys, out joints
+                        );
                     int jointCount = 0;
-                    for (int i = 0; i<maxKeys; i++){
-                        Joint joint = bodyStructure[i];
+                    for (int i = 0; i<count; i++){
+                        Joint joint = joints[i];
                         if (joint != null){
-                            joint.connection.setCurrent(jointCount);
                             joint.connection.replaceKeys(newKeys);
                             joint.optimizeCollisionSpheres();
                             joints[jointCount] = joint;
