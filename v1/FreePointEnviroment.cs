@@ -193,7 +193,7 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i<count; i++){
                         Joint joint = joints[i];
                         if (joint != null){
-                            joint.connection.replaceKeys(newKeys);
+                            joint.connection.replaceConnections(newKeys);
                             joint.optimizeCollisionSpheres();
                             joints[jointCount] = joint;
                             jointCount++;
@@ -225,22 +225,23 @@ public class FreePointEnviroment : Component
                     this.past = past;
                     this.future = future;
                 }
-                public void replaceKeys(int?[] keyManager){
+                void addKeys(List<int> connection, int?[] keyManager, out List<int> newKeys){
                     List<int> newConnection = new List<int>();
-                    for (int i = 0; i < past.Count; i++) {
-                        int? index = keyManager[past[i]];
+                    for (int i = 0; i < connection.Count; i++) {
+                        int? index = keyManager[connection[i]];
                         if (index != null){
                             newConnection.Add((int)index);
                         }
                     }
+                    newKeys = newConnection;
+                }
+                public void replaceConnections(int?[] keyManager){
+                    List<int> newConnection;
+                    addKeys(past, keyManager, out newConnection);
                     past = newConnection;
+
                     newConnection.Clear();
-                    for (int i = 0; i < future.Count; i++) {
-                        int? index = keyManager[past[i]];
-                        if (index != null){
-                            newConnection.Add((int)index);
-                        }
-                    }
+                    addKeys(future, keyManager, out newConnection);
                     future = newConnection;
                 }
             }
