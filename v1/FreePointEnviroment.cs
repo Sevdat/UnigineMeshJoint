@@ -33,47 +33,41 @@ public class FreePointEnviroment : Component
 
             public class Axis {
                 public vec3 origin,x,y,z;
-                
-                public Axis init(){
-                    return new Axis();
-                }
-                public void setOrigin(vec3 origin){
+                public float distance;
+
+                public Axis(){}
+                public Axis(vec3 origin, float distance){
                     this.origin = origin;
+                    this.distance = distance;
+                    x = origin + new vec3(1,0,0)*distance;
+                    y = origin + new vec3(0,1,0)*distance;
+                    z = origin + new vec3(0,0,1)*distance;
                 }
-                public void setX(vec3 x){
-                    this.x = x;
+
+                public void moveAxis(vec3 add){
+                    origin += add;
+                    x += add;
+                    y += add;
+                    z += add;
                 }
-                public void setY(vec3 y){
-                    this.y = y;
+                public void setAxis(vec3 newOrigin){
+                    vec3 newPosition = newOrigin-origin;
+                    moveAxis(newPosition);
                 }
-                public void setZ(vec3 z){
-                    this.z = z;
-                }
-                public void setAll(vec3 origin,vec3 x,vec3 y,vec3 z){
-                    setOrigin(origin);
-                    setX(x);
-                    setY(y);
-                    setZ(z);
-                }
-                public void scale(float distanceFromOrigin){
-                    if (distanceFromOrigin > 0){
-                        bool gateX = x == vec3.ZERO;
-                        bool gateY = y == vec3.ZERO;
-                        bool gateZ = z == vec3.ZERO;
-                        x = gateX?
-                            origin + new vec3(distanceFromOrigin,0,0):
-                            origin + direction(x,origin)*distanceFromOrigin;
-                        y = gateY?
-                            origin + new vec3(0,distanceFromOrigin,0):
-                            origin + direction(y,origin)*distanceFromOrigin;
-                        z = gateZ?
-                            origin + new vec3(0,0,distanceFromOrigin):
-                            origin + direction(z,origin)*distanceFromOrigin;
+                public void scale(float newDistance){
+                    if (newDistance > 0){
+                        distance = newDistance;
+                        x = origin + distanceFromOrign(x,origin);
+                        y = origin + distanceFromOrign(y,origin);
+                        z = origin + distanceFromOrign(z,origin);
                     }
                 }
                 public vec3 direction(vec3 point,vec3 origin){ 
                     vec3 v = point-origin;
                     return v/ MathLib.Length(v);
+                }
+                public vec3 distanceFromOrign(vec3 point,vec3 origin){
+                    return direction(point,origin)*distance;
                 }
             }
             public class KeyGenerator{
@@ -82,11 +76,14 @@ public class FreePointEnviroment : Component
                 public int increaseKeysBy;
                 public List<int> freeKeys;
 
-                public void init(int amountOfKeys){
+                public KeyGenerator(){}
+                public KeyGenerator(int amountOfKeys){
+                    freeKeys = new List<int>();
                     increaseKeysBy = amountOfKeys;
-                    maxKeys = amountOfKeys;
                     generateKeys();
+                    maxKeys = amountOfKeys;
                 }
+    
                 public void generateKeys(){
                     for(int i = 0; i < increaseKeysBy; i++){
                         freeKeys.Add(i+maxKeys);
@@ -121,13 +118,16 @@ public class FreePointEnviroment : Component
                 public Joint[] bodyStructure;
                 public KeyGenerator keyGenerator;
 
-                public BodyData init(int amountOfJoints){
-                    BodyData newBody = new BodyData();
+                public BodyData(){}
+                public BodyData(string bodyDataName, Axis globalAxis, int amountOfJoints){
+                    this.bodyDataName = bodyDataName;
+                    this.globalAxis = globalAxis;
                     bodyStructure = new Joint[amountOfJoints];
-                    newBody.keyGenerator.init(amountOfJoints);
-                    return newBody;
+                    keyGenerator = new KeyGenerator(amountOfJoints);
                 }
-                public void setAll(Axis globalAxis,Joint[] bodyStructure,KeyGenerator keyGenerator){
+
+                public void setAll(string bodyDataName,Axis globalAxis,Joint[] bodyStructure,KeyGenerator keyGenerator){
+                    this.bodyDataName = bodyDataName;
                     this.globalAxis = globalAxis;
                     this.bodyStructure = bodyStructure;
                     this.keyGenerator = keyGenerator;
@@ -178,8 +178,8 @@ public class FreePointEnviroment : Component
                         }
                     }
                     count = index;
-                    orginizedJoints = newJoints;
                     newKeys = keys;
+                    orginizedJoints = newJoints;
                 }
                 public void optimizeBody(){
                     int count;
@@ -206,10 +206,14 @@ public class FreePointEnviroment : Component
 
             public class Connection {
                 public int current;
-                public List<int> past, future;
+                public List<int> past; 
+                public List<int> future;
 
-                public Connection init(){
-                    return new Connection();
+                public Connection(){}
+                public Connection(int current, List<int> past,List<int> future){
+                    this.current = current;
+                    this.past = past;
+                    this.future = future;
                 }
                 public void setCurrent(int current){
                     this.current = current;
@@ -252,9 +256,14 @@ public class FreePointEnviroment : Component
                 public CollisionSphere[] collisionSpheres;
                 public KeyGenerator keyGenerator;
 
-                public Joint init(){
-                    return new Joint();
+                public Joint(){}
+                public Joint(int amountOfKeys, Axis localAxis,Connection connection){
+                    collisionSpheres = new CollisionSphere[amountOfKeys];
+                    keyGenerator = new KeyGenerator(amountOfKeys);
+                    this.localAxis = localAxis;
+                    this.connection = connection;
                 }
+
                 public void setAll(Connection connection,Axis localAxis,CollisionSphere[] collisionSpheres,KeyGenerator keyGenerator){
                     this.connection = connection;
                     this.localAxis = localAxis;
@@ -284,9 +293,15 @@ public class FreePointEnviroment : Component
                 public string bodyDataName;
                 public int jointKey;
                 public int collisionSphereKey;
-                public Path init(){
-                    return new Path();
+
+                public Path(){}
+                public Path(string collisionSphereName,string bodyDataName,int jointKey,int collisionSphereKey){
+                    this.collisionSphereName=collisionSphereName;
+                    this.bodyDataName=bodyDataName;
+                    this.jointKey=jointKey;
+                    this.collisionSphereKey=collisionSphereKey;
                 }
+
                 public void setCollisionSphereName(string collisionSphereName){
                     this.collisionSphereName = collisionSphereName;
                 }
@@ -309,13 +324,17 @@ public class FreePointEnviroment : Component
             }
 
             public class CollisionSphere {
-                public Path path;
-                public vec3 origin;
-                public float radius;
+                public Path path = new Path();
+                public vec3 origin = new vec3(0,0,0);
+                public float radius = 0;
 
-                public CollisionSphere init(){
-                    return new CollisionSphere();
+                public CollisionSphere(){}
+                public CollisionSphere(Path path,vec3 origin,float radius){
+                    this.path = path;
+                    this.origin = origin;
+                    this.radius = radius;
                 }
+                
                 public CollisionSphere get(){
                     return this;
                 }
@@ -390,17 +409,18 @@ public class FreePointEnviroment : Component
             }
         }
     }
-    ObjectMeshDynamic v;
+    World.Library.BodyData v;
 	void Init()
 	{
-        v = world.library.createCube(new vec3(1,1,1),new vec3(1,1,1),"lol");
+        // v = world.bodyInWorld.bodyData.init(1);
+        // Log.Message($"{v.keyGenerator.freeKeys[0]}\n");
         
 	}
     float lol =0;
 	void Update()
 	{
-        lol += Game.IFps;
-        if (lol>5) v.DeleteForce();
+        // lol += Game.IFps;
+        // if (lol>5) v.DeleteForce();
 		// write here code to be called before updating each render frame
 	}
 }
