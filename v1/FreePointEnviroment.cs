@@ -17,9 +17,8 @@ public class FreePointEnviroment : Component
             public List<CollisionSphere> a,b,c,d;
             public List<CollisionSphere> e,f,g,h;
         }
-        
+
         public class World {
-            public int worldKey;
             public Body[] bodiesInWorld;
             public OctTree octTree;
             public KeyGenerator keyGenerator;
