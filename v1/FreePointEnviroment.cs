@@ -189,6 +189,7 @@ public class FreePointEnviroment : Component
                 for (int i = 0; i<count; i++){
                     Joint joint = joints[i];
                     if (joint != null){
+                        if (this != joint.body) joint.setBody(this);
                         joint.connection.replaceConnections(newKeys);
                         joint.optimizeCollisionSpheres();
                         joints[jointCount] = joint;
@@ -260,7 +261,9 @@ public class FreePointEnviroment : Component
                 this.localAxis = localAxis;
                 this.connection = connection;
             }
-
+            public void setBody(Body body){
+                this.body=body;
+            }
             public void setAll(Connection connection,Axis localAxis,CollisionSphere[] collisionSpheres,KeyGenerator keyGenerator){
                 this.connection = connection;
                 this.localAxis = localAxis;
@@ -275,7 +278,7 @@ public class FreePointEnviroment : Component
                 for (int j = 0; j<maxKeys; j++){
                     CollisionSphere collision = collisionSpheres[j];
                     if (collision != null){
-                        collision.path.setBodyController(body);
+                        collision.path.setBody(body);
                         collision.path.setJointKey(connection.current);
                         collision.path.setCollisionSphereKey(collisionCount);
                         newCollision[collisionCount] = collision;
@@ -299,7 +302,7 @@ public class FreePointEnviroment : Component
                 this.collisionSphereKey=collisionSphereKey;
             }
 
-            public void setBodyController(Body body){
+            public void setBody(Body body){
                 this.body=body;
             }
             public void setJointKey(int jointKey){
