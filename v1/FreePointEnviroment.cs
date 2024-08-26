@@ -128,9 +128,6 @@ public class FreePointEnviroment : Component
                 this.bodyStructure = bodyStructure;
                 this.keyGenerator = keyGenerator;
             }
-            public Joint getJoint(int key){
-                return bodyStructure[key];
-            }
             void resizeJoints(){
                 if(keyGenerator.availableKeys == 0) {
                     keyGenerator.generateKeys();
@@ -145,10 +142,20 @@ public class FreePointEnviroment : Component
                     }
                 }
             }
-            public void addJoint(Joint joint){
+            public void getJointConnection(Joint externalJoint){
+                
+            }
+            public void addJoint(Joint externalJoint, int fromKey){
+                Joint internalJoint = bodyStructure[fromKey];
+                
+                
+                
+                
                 resizeJoints();
                 int key = keyGenerator.getKey();
-                bodyStructure[key] = joint;
+                externalJoint.setBody(this);
+                externalJoint.connection.setCurrent(key);
+                bodyStructure[key] = externalJoint;
             }
             public void deleteJoint(int key){
                 Joint remove = bodyStructure[key];
@@ -157,47 +164,42 @@ public class FreePointEnviroment : Component
                     bodyStructure[key] = null;
                 }
             }
-            void keyManager(
+            void jointOrginizer(
                 Joint[] joints, int maxKeys, int availableKeys, 
-                out int count, out int?[] newKeys, out Joint[] orginizedJoints
+                out int existingJoints, out int?[] orginizedKeys, out Joint[] orginizedJoints
                 ){
-                int index = 0;
+                int count = 0;
                 int?[] keys = new int?[maxKeys];
                 Joint[] newJoints = new Joint[maxKeys - availableKeys];
                 for (int i = 0; i<maxKeys; i++){
                     Joint joint = joints[i];
                     if (joint != null){
-                        keys[joint.connection.current] = index;
-                        joint.connection.setCurrent(index);
-                        newJoints[index] = joint;
-                        index++;
+                        keys[joint.connection.current] = count;
+                        joint.connection.setCurrent(count);
+                        newJoints[count] = joint;
+                        count++;
                     }
                 }
-                count = index;
-                newKeys = keys;
+                existingJoints = count;
+                orginizedKeys = keys;
                 orginizedJoints = newJoints;
             }
             public void optimizeBody(){
-                int count;
-                int?[] newKeys;
-                Joint[] joints;
-                keyManager(
+                int existingJoints;
+                int?[] orginizedKeys;
+                Joint[] orginizedJoints;
+                jointOrginizer(
                     bodyStructure, keyGenerator.maxKeys, keyGenerator.availableKeys,
-                    out count, out newKeys, out joints
+                    out existingJoints, out orginizedKeys, out orginizedJoints
                     );
-                int jointCount = 0;
-                for (int i = 0; i<count; i++){
-                    Joint joint = joints[i];
-                    if (joint != null){
-                        if (this != joint.body) joint.setBody(this);
-                        joint.connection.replaceConnections(newKeys);
-                        joint.optimizeCollisionSpheres();
-                        joints[jointCount] = joint;
-                        jointCount++;
-                    } 
+                for (int i = 0; i<existingJoints; i++){
+                    Joint joint = orginizedJoints[i];
+                    joint.setBody(this);
+                    joint.connection.replaceConnections(orginizedKeys);
+                    joint.optimizeCollisionSpheres();
                 }
-                bodyStructure = joints;
-                keyGenerator.resetGenerator(count);
+                bodyStructure = orginizedJoints;
+                keyGenerator.resetGenerator(existingJoints);
             }
         }
 
