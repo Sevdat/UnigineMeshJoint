@@ -128,8 +128,12 @@ public class FreePointEnviroment : Component
                 this.bodyStructure = bodyStructure;
                 this.keyGenerator = keyGenerator;
             }
-            void resizeJoints(){
-                if(keyGenerator.availableKeys == 0) {
+            void resizeJoints(int amount){
+                int availableKeys = keyGenerator.availableKeys;
+                int maxKeys = keyGenerator.maxKeys;
+                int limitCheck = availableKeys + amount;
+                if(limitCheck > maxKeys) {
+                    keyGenerator.setLimit(limitCheck - availableKeys);
                     keyGenerator.generateKeys();
                     int max = keyGenerator.maxKeys;
                     int newSize = max + keyGenerator.increaseKeysBy;
@@ -142,20 +146,20 @@ public class FreePointEnviroment : Component
                     }
                 }
             }
-            public void getJointConnection(Joint externalJoint){
+            public void addJoint(Joint fromBody, Joint toBody,bool pastOrFuture){
+                List<int> connectionTree;
+                int treeSize;
+                int biggestKey;
+                fromBody.getConnections(
+                    fromBody,pastOrFuture,
+                    out connectionTree,out treeSize,out biggestKey
+                    );
+                int?[] keys = new int?[biggestKey];
+                for (int i = 0; i<treeSize;i++){
+                    keys[connectionTree[i]] = keyGenerator.getKey();
+                }
+                resizeJoints(treeSize);   
                 
-            }
-            public void addJoint(Joint externalJoint, int fromKey){
-                Joint internalJoint = bodyStructure[fromKey];
-                
-                
-                
-                
-                resizeJoints();
-                int key = keyGenerator.getKey();
-                externalJoint.setBody(this);
-                externalJoint.connection.setCurrent(key);
-                bodyStructure[key] = externalJoint;
             }
             public void deleteJoint(int key){
                 Joint remove = bodyStructure[key];
@@ -237,7 +241,7 @@ public class FreePointEnviroment : Component
                     }
                 }
                 newKeys = newConnection;
-            }
+            } 
             public void replaceConnections(int?[] keyManager){
                 List<int> newConnection;
                 addKeys(past, keyManager, out newConnection);
@@ -271,6 +275,35 @@ public class FreePointEnviroment : Component
                 this.localAxis = localAxis;
                 this.collisionSpheres = collisionSpheres;
                 this.keyGenerator = keyGenerator;
+            }
+            public void getConnections(Joint joint, bool pastOrFuture, out List<int> connectionTree, out int treeSize, out int biggestKey){
+                Body body = joint.body;
+                if (body != null){
+                    Joint[] bodystructure = joint.body.bodyStructure;
+                    List<int> tree = pastOrFuture ? 
+                        new List<int>(joint.connection.future):
+                        new List<int>(joint.connection.past);
+
+                    int size = tree.Count;
+                    int biggest = 0;
+                    for (int i=0; i< size; i++){
+                        List<int> connection = pastOrFuture ?
+                            bodystructure[tree[i]].connection.future:
+                            bodystructure[tree[i]].connection.past;
+                        foreach(int e in connection){
+                            tree.Add(e);
+                            if (e > biggest) biggest = e;
+                            size++;
+                        };
+                    }
+                    connectionTree = tree;
+                    treeSize = size;
+                    biggestKey = biggest;
+                } else {
+                    connectionTree = new List<int>();
+                    treeSize = 0;
+                    biggestKey = 0;
+                }
             }
             public void optimizeCollisionSpheres(){
                 int maxKeys = keyGenerator.maxKeys;
