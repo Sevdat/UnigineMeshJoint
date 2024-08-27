@@ -146,17 +146,19 @@ public class FreePointEnviroment : Component
                     }
                 }
             }
-            public void addJoint(Joint fromBody, Joint toBody,bool pastOrFuture){
+            public void addJoint(Joint fromBody, Joint toBody){
                 List<int> connectionTree;
                 int treeSize;
                 int biggestKey;
+                int smallestKey;
+                bool futureOnly = true;
                 fromBody.getConnections(
-                    fromBody,pastOrFuture,
-                    out connectionTree,out treeSize,out biggestKey
+                    fromBody,futureOnly,
+                    out connectionTree,out treeSize,out biggestKey, out smallestKey
                     );
-                int?[] keys = new int?[biggestKey];
+                int?[] keys = new int?[smallestKey-biggestKey];
                 for (int i = 0; i<treeSize;i++){
-                    keys[connectionTree[i]] = keyGenerator.getKey();
+                    keys[smallestKey - connectionTree[i]] = keyGenerator.getKey();
                 }
                 resizeJoints(treeSize);   
                 
@@ -276,16 +278,20 @@ public class FreePointEnviroment : Component
                 this.collisionSpheres = collisionSpheres;
                 this.keyGenerator = keyGenerator;
             }
-            public void getConnections(Joint joint, bool pastOrFuture, out List<int> connectionTree, out int treeSize, out int biggestKey){
+            public void getConnections(
+                Joint joint, bool pastOrFuture, 
+                out List<int> connectionTree, 
+                out int treeSize, out int biggestKey,out int smallestKey
+                ){
                 Body body = joint.body;
                 if (body != null){
                     Joint[] bodystructure = joint.body.bodyStructure;
                     List<int> tree = pastOrFuture ? 
                         new List<int>(joint.connection.future):
                         new List<int>(joint.connection.past);
-
                     int size = tree.Count;
                     int biggest = 0;
+                    int smallest = tree[0];
                     for (int i=0; i< size; i++){
                         List<int> connection = pastOrFuture ?
                             bodystructure[tree[i]].connection.future:
@@ -293,16 +299,19 @@ public class FreePointEnviroment : Component
                         foreach(int e in connection){
                             tree.Add(e);
                             if (e > biggest) biggest = e;
+                            if (e < smallest) smallest = e;
                             size++;
                         };
                     }
                     connectionTree = tree;
                     treeSize = size;
                     biggestKey = biggest;
+                    smallestKey = smallest;
                 } else {
                     connectionTree = new List<int>();
                     treeSize = 0;
                     biggestKey = 0;
+                    smallestKey = 0;
                 }
             }
             public void optimizeCollisionSpheres(){
