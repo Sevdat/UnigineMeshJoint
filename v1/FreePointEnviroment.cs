@@ -155,15 +155,15 @@ public class FreePointEnviroment : Component
                     out int treeSize,out int biggestKey,out int smallestKey
                     );
                 if (fromBody.body != toBody.body && !connectionTree.Contains(toBody.connection.current)){
-                    
-                    int?[] keys = new int?[biggestKey-smallestKey];
+                    resizeJoints(treeSize);
+                    int?[] keys = new int?[biggestKey-smallestKey+1];
+                    keys[start - smallestKey] = keyGenerator.getKey();
                     for (int i = 0; i<treeSize;i++){
-                        keys[smallestKey - connectionTree[i]] = keyGenerator.getKey();
+                        keys[connectionTree[i]-smallestKey] = keyGenerator.getKey();
                     }
                     for (int i =0; i< treeSize;i++){
 
-                    }
-                    resizeJoints(treeSize);   
+                    }   
                 }
             }
             public void deleteJoint(int key){
@@ -335,7 +335,7 @@ public class FreePointEnviroment : Component
                     new List<int>(connection.past);
                 int size = tree.Count;
                 int biggest = 0;
-                int smallest = tree[0];
+                int smallest = connection.current;
                 List<int> end = new List<int>();
                 for (int i=0; i< size; i++){
                     List<int> tracker = pastOrFuture ?
