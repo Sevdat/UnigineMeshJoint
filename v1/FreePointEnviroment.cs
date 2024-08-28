@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Unigine;
 
 [Component(PropertyGuid = "11c8627ecaa24277eefccff039dede7767f5b9cc")]
@@ -80,7 +81,7 @@ public class FreePointEnviroment : Component
 
             public void generateKeys(){
                 for(int i = 0; i < increaseKeysBy; i++){
-                    freeKeys.Add(i+maxKeys);
+                    freeKeys.Add(maxKeys+increaseKeysBy-i);
                 }
                 availableKeys += increaseKeysBy;
                 maxKeys += increaseKeysBy;
@@ -91,8 +92,8 @@ public class FreePointEnviroment : Component
                 }
             }
             public int getKey(){
-                int key = freeKeys[0];
-                freeKeys.RemoveAt(0);
+                int key = freeKeys[availableKeys];
+                freeKeys.RemoveAt(availableKeys);
                 availableKeys -= 1;
                 return key;
             }
@@ -151,17 +152,19 @@ public class FreePointEnviroment : Component
                 int treeSize;
                 int biggestKey;
                 int smallestKey;
-                bool futureOnly = true;
-                fromBody.getConnections(
-                    fromBody,futureOnly,
-                    out connectionTree,out treeSize,out biggestKey, out smallestKey
+                fromBody.getFutureConnections(
+                    out connectionTree,
+                    out treeSize,out biggestKey, out smallestKey
                     );
-                int?[] keys = new int?[smallestKey-biggestKey];
-                for (int i = 0; i<treeSize;i++){
-                    keys[smallestKey - connectionTree[i]] = keyGenerator.getKey();
+                if (connectionTree.Contains(toBody.connection.current)){
+                    connectionTree.Except(connectionTree);
+                    int?[] keys = new int?[biggestKey-smallestKey];
+                    for (int i = 0; i<treeSize;i++){
+                        keys[smallestKey - connectionTree[i]] = keyGenerator.getKey();
+                    }
+                    
+                    resizeJoints(treeSize);   
                 }
-                resizeJoints(treeSize);   
-                
             }
             public void deleteJoint(int key){
                 Joint remove = bodyStructure[key];
@@ -278,24 +281,58 @@ public class FreePointEnviroment : Component
                 this.collisionSpheres = collisionSpheres;
                 this.keyGenerator = keyGenerator;
             }
-            public void getConnections(
-                Joint joint, bool pastOrFuture, 
+            public void getFutureConnections(
+                out List<int> connectionTree,
+                out int treeSize,out int biggestKey,out int smallestKey
+                ){
+                List<int> tree;
+                int size;
+                int biggest;
+                int smallest;
+                bool futureOnly = true;
+                connectionTracker(
+                    futureOnly,
+                    out tree, out size, out biggest, out smallest
+                    );
+                connectionTree = tree;
+                treeSize = size;
+                biggestKey = biggest;
+                smallestKey = smallest;
+            }
+            public void getPastConnections(
+                out List<int> connectionTree,
+                out int treeSize,out int biggestKey,out int smallestKey){
+                List<int> tree;
+                int size;
+                int biggest;
+                int smallest;
+                bool pastOnly = false;
+                connectionTracker(
+                    pastOnly,
+                    out tree, out size, out biggest, out smallest
+                    );
+                connectionTree = tree;
+                treeSize = size;
+                biggestKey = biggest;
+                smallestKey = smallest;
+            }
+            void connectionTracker(
+                bool pastOrFuture, 
                 out List<int> connectionTree, 
                 out int treeSize, out int biggestKey,out int smallestKey
                 ){
-                Body body = joint.body;
                 if (body != null){
-                    Joint[] bodystructure = joint.body.bodyStructure;
+                    Joint[] joints = body.bodyStructure;
                     List<int> tree = pastOrFuture ? 
-                        new List<int>(joint.connection.future):
-                        new List<int>(joint.connection.past);
+                        new List<int>(connection.future):
+                        new List<int>(connection.past);
                     int size = tree.Count;
                     int biggest = 0;
                     int smallest = tree[0];
                     for (int i=0; i< size; i++){
                         List<int> connection = pastOrFuture ?
-                            bodystructure[tree[i]].connection.future:
-                            bodystructure[tree[i]].connection.past;
+                            joints[tree[i]].connection.future:
+                            joints[tree[i]].connection.past;
                         foreach(int e in connection){
                             tree.Add(e);
                             if (e > biggest) biggest = e;
