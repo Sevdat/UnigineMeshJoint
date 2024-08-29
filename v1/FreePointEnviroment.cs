@@ -149,37 +149,37 @@ public class FreePointEnviroment : Component
             }
             public void addJoint(Joint fromBody, Joint toBody){
                 fromBody.getFutureConnections(
-                    out int start, 
-                    out List<int> connectionTree,
-                    out List<int> connectionEnd,
+                    out Joint start, 
+                    out List<Joint> connectionTree,
+                    out List<Joint> connectionEnd,
                     out int treeSize,out int biggestKey,out int smallestKey
                     );
-                if (fromBody.body != toBody.body && !connectionTree.Contains(toBody.connection.current)){
+                if (fromBody.body != toBody.body){
                     int startSize = 1;
                     toBody.body.resizeJoints(treeSize+startSize);
 
                     int?[] newKeys = new int?[biggestKey-smallestKey+startSize];
-                    newKeys[start - smallestKey] = toBody.keyGenerator.getKey();
+                    newKeys[start.connection.current - smallestKey] = toBody.keyGenerator.getKey();
                     for (int i = 0; i<treeSize;i++){
-                        newKeys[connectionTree[i] - smallestKey] = keyGenerator.getKey();
+                        newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
 
-                    Joint joint = fromBody.body.bodyStructure[start];
-                    fromBody.body.deleteJoint(start);
-                    joint.connection.replaceConnections(newKeys,smallestKey);
-                    joint.setBody(toBody.body); 
-                    joint.connection.past.Add(toBody.connection.current);                
-                    toBody.connection.future.Add(fromBody.connection.current);
-                    toBody.body.bodyStructure[start] = joint; 
+                    // Joint joint = fromBody.body.bodyStructure[start];
+                    // fromBody.body.deleteJoint(start);
+                    // joint.connection.replaceConnections(newKeys,smallestKey);
+                    // joint.setBody(toBody.body); 
+                    // joint.connection.past.Add(toBody.connection.current);                
+                    // toBody.connection.future.Add(fromBody.connection.current);
+                    // toBody.body.bodyStructure[start] = joint; 
                     
-                    for (int i =0; i< treeSize;i++){
-                        int key = connectionTree[i];
-                        joint = fromBody.body.bodyStructure[key];
-                        fromBody.body.deleteJoint(key);
-                        joint.connection.replaceConnections(newKeys,smallestKey);
-                        joint.setBody(toBody.body);
-                        toBody.body.bodyStructure[key] = joint;
-                    }   
+                    // for (int i =0; i< treeSize;i++){
+                    //     int key = connectionTree[i];
+                    //     joint = fromBody.body.bodyStructure[key];
+                    //     fromBody.body.deleteJoint(key);
+                    //     joint.connection.replaceConnections(newKeys,smallestKey);
+                    //     joint.setBody(toBody.body);
+                    //     toBody.body.bodyStructure[key] = joint;
+                    // }   
                 }
             }
             public void deleteJoint(int key){
@@ -229,11 +229,11 @@ public class FreePointEnviroment : Component
 
         public class Connection {
             public int current;
-            public List<int> past; 
-            public List<int> future;
+            public List<Joint> past; 
+            public List<Joint> future;
 
             public Connection(){}
-            public Connection(int current, List<int> past,List<int> future){
+            public Connection(int current, List<Joint> past,List<Joint> future){
                 this.current = current;
                 this.past = past;
                 this.future = future;
@@ -241,39 +241,20 @@ public class FreePointEnviroment : Component
             public void setCurrent(int current){
                 this.current = current;
             }
-            public void setPast(List<int> past){
+            public void setPast(List<Joint> past){
                 this.past = past;
             }
-            public void setFuture(List<int> future){
+            public void setFuture(List<Joint> future){
                 this.future = future;
             }
-            public void setAll(int current,List<int> past,List<int> future){
+            public void setAll(int current,List<Joint> past,List<Joint> future){
                 this.current = current;
                 this.past = past;
                 this.future = future;
             }
             public void replaceConnections(int?[] keyManager, int smallestKey){
                 setCurrent((int)keyManager[current - smallestKey]);
-
-                List<int> newConnection;
-                addKeys(past, keyManager, smallestKey, out newConnection);
-                past = newConnection;
-
-                newConnection.Clear();
-                addKeys(future, keyManager, smallestKey, out newConnection);
-                future = newConnection;
             }
-            void addKeys(List<int> connection, int?[] keyManager, int smallestKey, out List<int> newKeys){
-                List<int> newConnection = new List<int>();
-                int size = connection.Count;
-                for (int i = 0; i < size; i++) {
-                    int? index = keyManager[connection[i] - smallestKey];
-                    if (index != null){
-                        newConnection.Add((int)index);
-                    }
-                }                    
-                newKeys = newConnection;
-            } 
         }
 
         public class Joint {
@@ -294,17 +275,17 @@ public class FreePointEnviroment : Component
                 this.body=body;
             }
             public void getFutureConnections(
-                out int start, 
-                out List<int> connectionTree, 
-                out List<int> connectionEnd,
+                out Joint start, 
+                out List<Joint> connectionTree, 
+                out List<Joint> connectionEnd,
                 out int treeSize,out int biggestKey,out int smallestKey
                 ){
                 bool futureOnly = true;
                 connectionTracker(
                     futureOnly,
-                    out int current,
-                    out List<int> tree,
-                    out List<int> end,
+                    out Joint current,
+                    out List<Joint> tree,
+                    out List<Joint> end,
                     out int size, out int biggest, out int smallest
                     );
                 start = current;
@@ -315,17 +296,17 @@ public class FreePointEnviroment : Component
                 smallestKey = smallest;
             }
             public void getPastConnections(
-                out int start, 
-                out List<int> connectionTree, 
-                out List<int> connectionEnd,
+                out Joint start, 
+                out List<Joint> connectionTree, 
+                out List<Joint> connectionEnd,
                 out int treeSize,out int biggestKey,out int smallestKey
                 ){
                 bool pastOnly = false;
                 connectionTracker(
                     pastOnly,
-                    out int current,
-                    out List<int> tree,
-                    out List<int> end,
+                    out Joint current,
+                    out List<Joint> tree,
+                    out List<Joint> end,
                     out int size, out int biggest, out int smallest
                     );
                 start = current;
@@ -337,35 +318,38 @@ public class FreePointEnviroment : Component
             }
             void connectionTracker(
                 bool pastOrFuture,
-                out int start, 
-                out List<int> connectionTree,
-                out List<int> connectionEnd,
+                out Joint start, 
+                out List<Joint> connectionTree,
+                out List<Joint> connectionEnd,
                 out int treeSize, out int biggestKey,out int smallestKey
                 ){   
                 Joint[] joints = body.bodyStructure;
-                List<int> tree = pastOrFuture ? 
-                    new List<int>(connection.future):
-                    new List<int>(connection.past);
+                List<Joint> tree = pastOrFuture ? 
+                    new List<Joint>(connection.future):
+                    new List<Joint>(connection.past);
                 int size = tree.Count;
                 int biggest = 0;
                 int smallest = connection.current;
-                List<int> end = new List<int>();
+                List<Joint> end = new List<Joint>();
                 for (int i=0; i< size; i++){
-                    List<int> tracker = pastOrFuture ?
-                        joints[tree[i]].connection.future:
-                        joints[tree[i]].connection.past;
-                    if (tracker.Count > 0){
-                        foreach(int e in tracker){
-                            tree.Add(e);
-                            if (e > biggest) biggest = e;
-                            if (e < smallest) smallest = e;
+                    List<Joint> tracker = pastOrFuture ?
+                        joints[tree[i].connection.current].connection.future:
+                        joints[tree[i].connection.current].connection.past;
+                    int trackerSize = tracker.Count;
+                    if (trackerSize > 0){
+                        for(int e = 0; e < trackerSize; e++){
+                            Joint joint = tracker[e];
+                            int current = joint.connection.current;
+                            if (current > biggest) biggest = current;
+                            if (current < smallest) smallest = current;
+                            tree.Add(joint);
                             size++;
                         };
                     } else {
                         end.Add(tree[i]);
                     }
                 }
-                start = connection.current;
+                start = this;
                 connectionTree = tree;
                 connectionEnd = end;
                 treeSize = size;
