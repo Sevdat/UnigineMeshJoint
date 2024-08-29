@@ -123,12 +123,6 @@ public class FreePointEnviroment : Component
                 keyGenerator = new KeyGenerator(amountOfJoints);
             }
 
-            public void setAll(int worldKey,Axis globalAxis,Joint[] bodyStructure,KeyGenerator keyGenerator){
-                this.worldKey = worldKey;
-                this.globalAxis = globalAxis;
-                this.bodyStructure = bodyStructure;
-                this.keyGenerator = keyGenerator;
-            }
             void resizeJoints(int amount){
                 int availableKeys = keyGenerator.availableKeys;
                 int maxKeys = keyGenerator.maxKeys;
@@ -148,38 +142,34 @@ public class FreePointEnviroment : Component
                 }
             }
             public void addJoint(Joint fromBody, Joint toBody){
-                fromBody.getFutureConnections(
-                    out Joint start, 
+                fromBody.getFutureConnections( 
                     out List<Joint> connectionTree,
                     out List<Joint> connectionEnd,
                     out int treeSize,out int biggestKey,out int smallestKey
                     );
                 if (fromBody.body != toBody.body){
-                    int startSize = 1;
-                    toBody.body.resizeJoints(treeSize+startSize);
+                    toBody.body.resizeJoints(treeSize);
 
-                    int?[] newKeys = new int?[biggestKey-smallestKey+startSize];
-                    newKeys[start.connection.current - smallestKey] = toBody.keyGenerator.getKey();
+                    int?[] newKeys = new int?[biggestKey-smallestKey];
                     for (int i = 0; i<treeSize;i++){
                         newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
-
-                    // Joint joint = fromBody.body.bodyStructure[start];
-                    // fromBody.body.deleteJoint(start);
-                    // joint.connection.replaceConnections(newKeys,smallestKey);
-                    // joint.setBody(toBody.body); 
-                    // joint.connection.past.Add(toBody.connection.current);                
-                    // toBody.connection.future.Add(fromBody.connection.current);
-                    // toBody.body.bodyStructure[start] = joint; 
-                    
-                    // for (int i =0; i< treeSize;i++){
-                    //     int key = connectionTree[i];
-                    //     joint = fromBody.body.bodyStructure[key];
-                    //     fromBody.body.deleteJoint(key);
-                    //     joint.connection.replaceConnections(newKeys,smallestKey);
-                    //     joint.setBody(toBody.body);
-                    //     toBody.body.bodyStructure[key] = joint;
-                    // }   
+                    Joint start =  connectionTree[0];
+                    List<Joint> deleteFrom = start.connection.past;
+                    int size = deleteFrom.Count; 
+                    for (int i =0; i<size;i++){
+                        deleteFrom[i].connection.future.Remove(start);
+                    }
+                    start.connection.past.Clear();
+                    toBody.connection.future.Add(start);
+                    connectionTree[0].connection.past.Add(toBody);
+                    for (int i =0; i< treeSize;i++){
+                        Joint joint = connectionTree[i];
+                        joint.body.deleteJoint(joint.connection.current);
+                        joint.connection.replaceConnections(newKeys,smallestKey);
+                        joint.setBody(toBody.body);
+                        toBody.body.bodyStructure[joint.connection.current] = joint;
+                    }   
                 }
             }
             public void deleteJoint(int key){
@@ -247,11 +237,6 @@ public class FreePointEnviroment : Component
             public void setFuture(List<Joint> future){
                 this.future = future;
             }
-            public void setAll(int current,List<Joint> past,List<Joint> future){
-                this.current = current;
-                this.past = past;
-                this.future = future;
-            }
             public void replaceConnections(int?[] keyManager, int smallestKey){
                 setCurrent((int)keyManager[current - smallestKey]);
             }
@@ -275,7 +260,6 @@ public class FreePointEnviroment : Component
                 this.body=body;
             }
             public void getFutureConnections(
-                out Joint start, 
                 out List<Joint> connectionTree, 
                 out List<Joint> connectionEnd,
                 out int treeSize,out int biggestKey,out int smallestKey
@@ -283,12 +267,9 @@ public class FreePointEnviroment : Component
                 bool futureOnly = true;
                 connectionTracker(
                     futureOnly,
-                    out Joint current,
-                    out List<Joint> tree,
-                    out List<Joint> end,
+                    out List<Joint> tree, out List<Joint> end,
                     out int size, out int biggest, out int smallest
                     );
-                start = current;
                 connectionTree = tree;
                 connectionEnd = end;
                 treeSize = size;
@@ -296,7 +277,6 @@ public class FreePointEnviroment : Component
                 smallestKey = smallest;
             }
             public void getPastConnections(
-                out Joint start, 
                 out List<Joint> connectionTree, 
                 out List<Joint> connectionEnd,
                 out int treeSize,out int biggestKey,out int smallestKey
@@ -304,12 +284,9 @@ public class FreePointEnviroment : Component
                 bool pastOnly = false;
                 connectionTracker(
                     pastOnly,
-                    out Joint current,
-                    out List<Joint> tree,
-                    out List<Joint> end,
+                    out List<Joint> tree, out List<Joint> end,
                     out int size, out int biggest, out int smallest
                     );
-                start = current;
                 connectionTree = tree;
                 connectionEnd = end;
                 treeSize = size;
@@ -318,15 +295,14 @@ public class FreePointEnviroment : Component
             }
             void connectionTracker(
                 bool pastOrFuture,
-                out Joint start, 
-                out List<Joint> connectionTree,
-                out List<Joint> connectionEnd,
+                out List<Joint> connectionTree, out List<Joint> connectionEnd,
                 out int treeSize, out int biggestKey,out int smallestKey
-                ){   
+                ){
                 Joint[] joints = body.bodyStructure;
-                List<Joint> tree = pastOrFuture ? 
-                    new List<Joint>(connection.future):
-                    new List<Joint>(connection.past);
+                List<Joint> tree = new List<Joint>{this};  
+                if (pastOrFuture) 
+                    tree.AddRange(connection.future); 
+                    else tree.AddRange(connection.past);               
                 int size = tree.Count;
                 int biggest = 0;
                 int smallest = connection.current;
@@ -349,7 +325,6 @@ public class FreePointEnviroment : Component
                         end.Add(tree[i]);
                     }
                 }
-                start = this;
                 connectionTree = tree;
                 connectionEnd = end;
                 treeSize = size;
