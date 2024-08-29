@@ -154,11 +154,8 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i<treeSize;i++){
                         newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
-                    Joint start =  connectionTree[0];
-                    start.connection.disconnectPast();
-                    start.connection.past.Clear();
-                    toBody.connection.future.Add(start);
-                    connectionTree[0].connection.past.Add(toBody);
+                    connectionTree[0].disconnectPast();
+                    toBody.addFuture(fromBody);
                     for (int i =0; i< treeSize;i++){
                         Joint joint = connectionTree[i];
                         joint.body.deleteJoint(joint.connection.current);
@@ -233,21 +230,6 @@ public class FreePointEnviroment : Component
             public void setFuture(List<Joint> future){
                 this.future = future;
             }
-            public void disconnectFuture(){
-                disconnect(future);
-            }
-            public void disconnectPast(){
-                disconnect(past);
-            }
-            void disconnect(List<Joint> joints){
-                int size = joints.Count;
-                if (size > 0) {
-                    Joint currentJoint = joints[0].body.bodyStructure[current];
-                    for (int i =0; i<size;i++){
-                        joints[i].connection.future.Remove(currentJoint);
-                    }
-                }
-            }
             public void replaceConnections(int?[] keyManager, int smallestKey){
                 setCurrent((int)keyManager[current - smallestKey]);
             }
@@ -303,6 +285,37 @@ public class FreePointEnviroment : Component
                 treeSize = size;
                 biggestKey = biggest;
                 smallestKey = smallest;
+            }
+            public void addFuture(Joint joint){
+                setBody(joint.body);
+                joint.connection.past.Add(this);
+                connection.future.Add(joint);
+            }
+            public void addPast(Joint joint){
+                setBody(joint.body);
+                joint.connection.future.Add(this);
+                connection.past.Add(joint);
+            }
+            public void disconnectFuture(){
+                bool futureOnly = true;
+                disconnect(connection.future,futureOnly);
+                connection.future.Clear();
+            }
+            public void disconnectPast(){
+                bool pastOnly = false;
+                disconnect(connection.past,pastOnly);
+                connection.past.Clear();
+            }
+            void disconnect(List<Joint> joints, bool pastOrFuture){
+                int size = joints.Count;
+                if (pastOrFuture) 
+                    for (int i =0; i<size;i++){
+                        joints[i].connection.future.Remove(this);
+                    }
+                 else 
+                    for (int i =0; i<size;i++){
+                        joints[i].connection.past.Remove(this);
+                    }
             }
             void connectionTracker(
                 bool pastOrFuture,
