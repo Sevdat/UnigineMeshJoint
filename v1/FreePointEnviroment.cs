@@ -155,11 +155,7 @@ public class FreePointEnviroment : Component
                         newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
                     Joint start =  connectionTree[0];
-                    List<Joint> deleteFrom = start.connection.past;
-                    int size = deleteFrom.Count; 
-                    for (int i =0; i<size;i++){
-                        deleteFrom[i].connection.future.Remove(start);
-                    }
+                    start.connection.disconnectPast();
                     start.connection.past.Clear();
                     toBody.connection.future.Add(start);
                     connectionTree[0].connection.past.Add(toBody);
@@ -236,6 +232,21 @@ public class FreePointEnviroment : Component
             }
             public void setFuture(List<Joint> future){
                 this.future = future;
+            }
+            public void disconnectFuture(){
+                disconnect(future);
+            }
+            public void disconnectPast(){
+                disconnect(past);
+            }
+            void disconnect(List<Joint> joints){
+                int size = joints.Count;
+                if (size > 0) {
+                    Joint currentJoint = joints[0].body.bodyStructure[current];
+                    for (int i =0; i<size;i++){
+                        joints[i].connection.future.Remove(currentJoint);
+                    }
+                }
             }
             public void replaceConnections(int?[] keyManager, int smallestKey){
                 setCurrent((int)keyManager[current - smallestKey]);
