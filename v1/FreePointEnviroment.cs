@@ -141,7 +141,7 @@ public class FreePointEnviroment : Component
                     }
                 }
             }
-            public void deleteJoint(int key){
+            public void returnJointKey(int key){
                 Joint remove = bodyStructure[key];
                 if(remove != null){
                     keyGenerator.returnKey(key);
@@ -262,7 +262,7 @@ public class FreePointEnviroment : Component
                 biggestKey = biggest;
                 smallestKey = smallest;
             }
-            public void sendJointTreeTo(Joint newJoint){
+            public void connectJointTo(Joint newJoint){
                 getFutureConnections( 
                     out List<Joint> connectionTree,
                     out List<Joint> connectionEnds,
@@ -275,29 +275,31 @@ public class FreePointEnviroment : Component
                     for (int i = 0; i<treeSize;i++){
                         newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
-                    connectionTree[0].disconnectPast();
-                    newJoint.addPast(this);
+                    disconnectPast();
+                    connectToPast(newJoint);
                     for (int i =0; i< treeSize;i++){
                         Joint joint = connectionTree[i];
-                        joint.body.deleteJoint(joint.connection.current);
+                        joint.body.returnJointKey(joint.connection.current);
                         joint.connection.replaceConnections(newKeys,smallestKey);
                         joint.setBody(newJoint.body);
                         newJoint.body.bodyStructure[joint.connection.current] = joint;
                     }   
+                } else {
+                    disconnectPast();
+                    connectToPast(newJoint);
                 }
             }
-            public void addFuture(Joint joint){
-                if (joint.body != body) setBody(joint.body);
+            void connectToFuture(Joint joint){
                 List<Joint> connectTo = joint.connection.past;
-                if (!connectTo.Contains(this)) joint.connection.past.Add(this);
-                if (!connection.past.Contains(joint)) connection.future.Add(joint);
+                if (!connectTo.Contains(this)) connectTo.Add(this);
+                if (!connection.future.Contains(joint)) connection.future.Add(joint);
             }
-            public void addPast(Joint joint){
-                if (joint.body != body) setBody(joint.body);
+            void connectToPast(Joint joint){
                 List<Joint> connectTo = joint.connection.future;
                 if (!connectTo.Contains(this)) connectTo.Add(this);
                 if (!connection.past.Contains(joint)) connection.past.Add(joint);
             }
+
             public void disconnectFuture(){
                 bool futureOnly = true;
                 disconnect(connection.future,futureOnly);
