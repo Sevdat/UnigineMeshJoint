@@ -21,7 +21,7 @@ public class FreePointEnviroment : Component
 
         public class World {
             public Body[] bodiesInWorld;
-            public OctTree octTree;
+            public OctTree sphereOctTree;
             public KeyGenerator keyGenerator;
         }
 
