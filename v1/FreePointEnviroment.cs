@@ -287,14 +287,16 @@ public class FreePointEnviroment : Component
                 smallestKey = smallest;
             }
             public void addFuture(Joint joint){
-                setBody(joint.body);
-                joint.connection.past.Add(this);
-                connection.future.Add(joint);
+                if (joint.body != body) setBody(joint.body);
+                List<Joint> connectTo = joint.connection.past;
+                if (!connectTo.Contains(this)) joint.connection.past.Add(this);
+                if (!connection.past.Contains(joint)) connection.future.Add(joint);
             }
             public void addPast(Joint joint){
-                setBody(joint.body);
-                joint.connection.future.Add(this);
-                connection.past.Add(joint);
+                if (joint.body != body) setBody(joint.body);
+                List<Joint> connectTo = joint.connection.future;
+                if (!connectTo.Contains(this)) connectTo.Add(this);
+                if (!connection.past.Contains(joint)) connection.past.Add(joint);
             }
             public void disconnectFuture(){
                 bool futureOnly = true;
