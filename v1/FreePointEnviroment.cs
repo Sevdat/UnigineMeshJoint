@@ -123,7 +123,7 @@ public class FreePointEnviroment : Component
                 keyGenerator = new KeyGenerator(amountOfJoints);
             }
 
-            void resizeJoints(int amount){
+           public void resizeJoints(int amount){
                 int availableKeys = keyGenerator.availableKeys;
                 int maxKeys = keyGenerator.maxKeys;
                 int limitCheck = availableKeys + amount;
@@ -139,30 +139,6 @@ public class FreePointEnviroment : Component
                             newJointArray[i] = joint;
                         }
                     }
-                }
-            }
-            public void addJoint(Joint fromBody, Joint toBody){
-                fromBody.getFutureConnections( 
-                    out List<Joint> connectionTree,
-                    out List<Joint> connectionEnd,
-                    out int treeSize,out int biggestKey,out int smallestKey
-                    );
-                if (fromBody.body != toBody.body){
-                    toBody.body.resizeJoints(treeSize);
-
-                    int?[] newKeys = new int?[biggestKey-smallestKey];
-                    for (int i = 0; i<treeSize;i++){
-                        newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
-                    }
-                    connectionTree[0].disconnectPast();
-                    toBody.addFuture(fromBody);
-                    for (int i =0; i< treeSize;i++){
-                        Joint joint = connectionTree[i];
-                        joint.body.deleteJoint(joint.connection.current);
-                        joint.connection.replaceConnections(newKeys,smallestKey);
-                        joint.setBody(toBody.body);
-                        toBody.body.bodyStructure[joint.connection.current] = joint;
-                    }   
                 }
             }
             public void deleteJoint(int key){
@@ -285,6 +261,30 @@ public class FreePointEnviroment : Component
                 treeSize = size;
                 biggestKey = biggest;
                 smallestKey = smallest;
+            }
+            public void sendJointTreeTo(Joint newJoint){
+                getFutureConnections( 
+                    out List<Joint> connectionTree,
+                    out List<Joint> connectionEnds,
+                    out int treeSize,out int biggestKey,out int smallestKey
+                    );
+                if (body != newJoint.body){
+                    newJoint.body.resizeJoints(treeSize);
+
+                    int?[] newKeys = new int?[biggestKey-smallestKey];
+                    for (int i = 0; i<treeSize;i++){
+                        newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
+                    }
+                    connectionTree[0].disconnectPast();
+                    newJoint.addPast(this);
+                    for (int i =0; i< treeSize;i++){
+                        Joint joint = connectionTree[i];
+                        joint.body.deleteJoint(joint.connection.current);
+                        joint.connection.replaceConnections(newKeys,smallestKey);
+                        joint.setBody(newJoint.body);
+                        newJoint.body.bodyStructure[joint.connection.current] = joint;
+                    }   
+                }
             }
             public void addFuture(Joint joint){
                 if (joint.body != body) setBody(joint.body);
