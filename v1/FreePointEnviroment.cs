@@ -276,7 +276,7 @@ public class FreePointEnviroment : Component
                         newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
                     }
                     disconnectPast();
-                    connectToPast(newJoint);
+                    connectPastTo(newJoint);
                     for (int i =0; i< treeSize;i++){
                         Joint joint = connectionTree[i];
                         joint.body.returnJointKey(joint.connection.current);
@@ -286,15 +286,15 @@ public class FreePointEnviroment : Component
                     }   
                 } else {
                     disconnectPast();
-                    connectToPast(newJoint);
+                    connectPastTo(newJoint);
                 }
             }
-            void connectToFuture(Joint joint){
+            void connectFutureTo(Joint joint){
                 List<Joint> connectTo = joint.connection.past;
                 if (!connectTo.Contains(this)) connectTo.Add(this);
                 if (!connection.future.Contains(joint)) connection.future.Add(joint);
             }
-            void connectToPast(Joint joint){
+            void connectPastTo(Joint joint){
                 List<Joint> connectTo = joint.connection.future;
                 if (!connectTo.Contains(this)) connectTo.Add(this);
                 if (!connection.past.Contains(joint)) connection.past.Add(joint);
