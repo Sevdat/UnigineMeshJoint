@@ -10,8 +10,8 @@ public class FreePointEnviroment : Component
 {
     public class Library {
 
-        public class OctTree {
-            public OctTree octTree;
+        public class SphericalOctTree {
+            public SphericalOctTree sphereOctTree;
             public int depth;
             public vec3 origin;
             public List<CollisionSphere> root;
@@ -21,7 +21,7 @@ public class FreePointEnviroment : Component
 
         public class World {
             public Body[] bodiesInWorld;
-            public OctTree sphereOctTree;
+            public SphericalOctTree sphereOctTree;
             public KeyGenerator keyGenerator;
         }
 
