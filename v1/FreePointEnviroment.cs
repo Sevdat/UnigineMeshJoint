@@ -225,6 +225,7 @@ public class FreePointEnviroment : Component
                 this.localAxis = localAxis;
                 this.connection = connection;
             }
+
             public void setBody(Body body){
                 this.body=body;
             }
@@ -284,7 +285,7 @@ public class FreePointEnviroment : Component
                         joint.setBody(newJoint.body);
                         newJoint.body.bodyStructure[joint.connection.current] = joint;
                     }   
-                } else {
+                } else if (!connectionTree.Contains(newJoint)) {
                     disconnectPast();
                     connectPastTo(newJoint);
                 }
@@ -299,7 +300,6 @@ public class FreePointEnviroment : Component
                 if (!connectTo.Contains(this)) connectTo.Add(this);
                 if (!connection.past.Contains(joint)) connection.past.Add(joint);
             }
-
             public void disconnectFuture(){
                 bool futureOnly = true;
                 disconnect(connection.future,futureOnly);
