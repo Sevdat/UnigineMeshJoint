@@ -148,41 +148,37 @@ public class FreePointEnviroment : Component
                     bodyStructure[key] = null;
                 }
             }
-            void jointOrginizer(
-                Joint[] joints, int maxKeys, int availableKeys, 
-                out int existingJoints, out int?[] orginizedKeys, out Joint[] orginizedJoints
-                ){
-                int count = 0;
-                int?[] keys = new int?[maxKeys];
-                Joint[] newJoints = new Joint[maxKeys - availableKeys];
-                for (int i = 0; i<maxKeys; i++){
-                    Joint joint = joints[i];
+            public void optimizeBody(){
+                Joint firstJoint = null;
+                for (int i =0; i<keyGenerator.maxKeys; i++){
+                    Joint joint = bodyStructure[i];
                     if (joint != null){
-                        keys[joint.connection.current] = count;
-                        newJoints[count] = joint;
-                        count++;
+                        firstJoint = joint;
+                        break;
                     }
                 }
-                existingJoints = count;
-                orginizedKeys = keys;
-                orginizedJoints = newJoints;
-            }
-            public void optimizeBody(){
-                int existingJoints;
-                int?[] orginizedKeys;
-                Joint[] orginizedJoints;
-                jointOrginizer(
-                    bodyStructure, keyGenerator.maxKeys, keyGenerator.availableKeys,
-                    out existingJoints, out orginizedKeys, out orginizedJoints
+                firstJoint.getPastConnections(
+                    out _, 
+                    out List<Joint> jointOrigin, 
+                    out _, out _, out _
                     );
-                int smallestKey = 0;
-                for (int i = 0; i<existingJoints; i++){
-                    Joint joint = orginizedJoints[i];
-                    joint.connection.replaceConnections(orginizedKeys,smallestKey);
-                    joint.optimizeCollisionSpheres();
-                }
+                if (jointOrigin.Count == 1){
+                    firstJoint = jointOrigin[0];
+                    firstJoint.getPastConnections(
+                    out List<Joint> connectionTree, 
+                    out _, 
+                    out int treeSize, out _, out int smallestKey
+                    );
+                    Joint[] orginizedJoints = new Joint[treeSize];
+                    for (int i = 0; i < treeSize; i++){
+                        Joint joint = connectionTree[i];
+                        int newIndex = joint.connection.current - smallestKey;
+                        joint.connection.current = newIndex;
+                        orginizedJoints[newIndex] = joint;
+                    }
                 bodyStructure = orginizedJoints;
-                keyGenerator.resetGenerator(existingJoints);
+                keyGenerator.resetGenerator(treeSize);
+                }
             }
         }
 
@@ -205,9 +201,6 @@ public class FreePointEnviroment : Component
             }
             public void setFuture(List<Joint> future){
                 this.future = future;
-            }
-            public void replaceConnections(int?[] keyManager, int smallestKey){
-                setCurrent((int)keyManager[current - smallestKey]);
             }
         }
 
@@ -264,25 +257,21 @@ public class FreePointEnviroment : Component
                 smallestKey = smallest;
             }
             public void connectJointTo(Joint newJoint){
+
                 getFutureConnections( 
                     out List<Joint> connectionTree,
-                    out List<Joint> connectionEnds,
-                    out int treeSize,out int biggestKey,out int smallestKey
+                    out _,
+                    out int treeSize,out _,out _
                     );
                 if (body != newJoint.body){
                     newJoint.body.resizeJoints(treeSize);
-
-                    int?[] newKeys = new int?[biggestKey-smallestKey];
-                    for (int i = 0; i<treeSize;i++){
-                        newKeys[connectionTree[i].connection.current - smallestKey] = keyGenerator.getKey();
-                    }
                     disconnectPast();
                     connectPastTo(newJoint);
                     for (int i =0; i< treeSize;i++){
                         Joint joint = connectionTree[i];
                         joint.body.returnJointKey(joint.connection.current);
-                        joint.connection.replaceConnections(newKeys,smallestKey);
                         joint.setBody(newJoint.body);
+                        joint.connection.current = newJoint.keyGenerator.getKey();
                         newJoint.body.bodyStructure[joint.connection.current] = joint;
                     }   
                 } else if (!connectionTree.Contains(newJoint)) {
