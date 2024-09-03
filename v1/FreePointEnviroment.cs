@@ -164,7 +164,7 @@ public class FreePointEnviroment : Component
                     );
                 if (jointOrigin.Count == 1){
                     firstJoint = jointOrigin[0];
-                    firstJoint.getPastConnections(
+                    firstJoint.getFutureConnections(
                     out List<Joint> connectionTree, 
                     out _, 
                     out int treeSize, out _, out int smallestKey
@@ -257,7 +257,6 @@ public class FreePointEnviroment : Component
                 smallestKey = smallest;
             }
             public void connectJointTo(Joint newJoint){
-
                 getFutureConnections( 
                     out List<Joint> connectionTree,
                     out _,
